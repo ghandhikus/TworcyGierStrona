@@ -29,11 +29,7 @@ var Chat = Chat || {
 	/**
 	 * Initializes chat.
 	 */
-	init : function() {
-		
-		var oldMessages = Chat._getStorage();
-		Chat._parseMessages(oldMessages);
-		
+	init : function() {		
 		document.body.innerHTML += '<div id="chat"><div id="chat_text_wrapper"><div id="chat_text"></div></div><input type="text" id="chat_input" disabled="true"/><div id="chat_status" style="color:#F99;"></div></div><div id="chat_toggle">Pokaz czat</div>';
 		
 		$("#chat_input").bind("keypress", function (e){
@@ -124,21 +120,22 @@ var Chat = Chat || {
 					// Clear players
 					Chat.players = [];
 					
-					if(data.length>0)
-						console.log(data);
+					//if(data.length>0) console.log(data);
 					
 					var messageFound = false;
 					// Iterate through data
 					for (var i = 0; i < data.length; i++)
 						// Skip invalid
 						if (data[i] != null && data[i] != "null")
+						{
+							var msg = JSON.parse(data[i]);
 							// Entry is a message
-							if(data[i]["msg"] != null)
+							if(msg["msg"] != null)
 							{
 								messageFound = true;
-								Chat._parseMessage(data[i]);
+								Chat._parseMessage(msg);
 							}
-					
+						}
 					// Ask for more messages.
 					if(messageFound)
 						setTimeout(Chat.net, 50);
@@ -149,42 +146,13 @@ var Chat = Chat || {
 		});
 	},
 	/**
-	 * Gets the array from local storage for a "chatMessages" tag. It is used only for chatMessages 
-	 * @returns {Array}
-	 * @private
-	 */
-	_getStorage:function(){
-		if(typeof(Storage) !== "undefined") {
-			var currentStorage = localStorage.getItem("chatMessages");
-			if(currentStorage == null)
-				return [];
-			var ret = JSON.parse(currentStorage);
-			if(Object.prototype.toString.call( ret ) !== '[object Array]') 
-				return [];
-			
-			return ret;
-		}
-		else return [];
-	},
-	/**
-	 * Sets the array of the chat messages to the local storage.
-	 * @param {Array} data
-	 * @private
-	 */
-	_setStorage:function(data)
-	{
-		if(typeof(Storage) !== "undefined" && Object.prototype.toString.call( data ) === '[object Array]') {
-			localStorage.setItem("chatMessages", JSON.stringify(data));
-		} else {
-			console.error("Chat._setStorage failed : storageType("+typeof(Storage)+") / dataParam("+Object.prototype.toString.call( data )+"), Expected not 'undefined' and '[object Array]'");
-		}
-	},
-	/**
 	 * Parses the received message.
 	 * @param {Array} message object
 	 * @private
 	 */
 	_parseMessage: function(msg) {
+		// Change type
+		msg['id'] = parseInt(msg['id']);
 		// Set the newest message.
 		if(Chat.lastMessage < msg['id'])
 			Chat.lastMessage = msg['id'];
@@ -193,20 +161,13 @@ var Chat = Chat || {
 		
 		
 		// Add the message to chat
-		$("#chat_text").html($("#chat_text").html()+"<br>"+msg['msg']);
+		$("#chat_text").html($("#chat_text").html()+msg['msg']+"<br>");
 
 		// Debug
 		console.log("GOT CHAT MESSAGE : " + msg['id'] +"&&{"+msg['msg']+"}");
 
 		if(Chat._scrollBound === true)
 			$("#chat_text").scrollTop(Chat.getMaxScroll());
-		
-		// Add to storage
-		var storage = Chat._getStorage();
-		if(Object.prototype.toString.call( storage ) !== '[object Array]')
-			storage = [];
-		storage.push(msg);
-		Chat._setStorage(storage);
 	},
 	/**
 	 * Parses all the messages received from the host.
@@ -306,6 +267,6 @@ var Chat = Chat || {
 }
 
 // Add chat elements to screen.
-$(Chat.init);
+//$(Chat.init);
 // Start connection if ready.
-$(Chat.net);
+//$(Chat.net);

@@ -9,6 +9,7 @@
 body {
     margin-top: 100px;
     background-color: #222;
+    font-family: 'PT Sans', sans-serif;
 }
 
 @media(min-width:768px) {
@@ -266,6 +267,11 @@ ul.alert-dropdown {
 /*
  * Game model
  */
+.game.edit.image_sorter img {
+	height: 128px;
+	padding:3px;
+}
+ 
 div.game.galleria{
 	min-height:	128px;
 	min-width:	128px;

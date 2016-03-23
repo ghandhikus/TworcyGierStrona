@@ -28,12 +28,15 @@ var LogoutChecker = LogoutChecker || {
 			method : 'POST',
 			timeout : 2000, //2 second timeout
 			error : function(jqXHR, status, errorThrown) { //the status returned will be "timeout" 
+				console.error("ERROR check_logout.jsp : "+errorThrown);
 				setTimeout(LogoutChecker.net, 250);
 			},
 			success : function(data) {
 				// Redirect to main site when logged out.
 				if (data[0] == "notLogged") 
 					window.location.assign("${mainSite}"); // set the link
+				else if(data != "")
+					console.log("Unknown json in check_logout.jsp : "+data);
 				
 				setTimeout(LogoutChecker.net, 250);
 			}
@@ -42,6 +45,6 @@ var LogoutChecker = LogoutChecker || {
 }
 
 // Start connection if ready.
-$(LogoutChecker.net);
+//$(LogoutChecker.net);
 </script>
 </c:if>

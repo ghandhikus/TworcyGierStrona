@@ -19,6 +19,11 @@
         Maren
         <small>Subheading</small>
 	</c:when>
+<%-- ### Profiles --%>
+	<c:when test="${nav.onPage(currentPage, 'profile')}">
+        Profile
+        <small>Krótki opis profili</small>
+	</c:when>
 	
 <%-- ### Accounts --%>
 	<c:when test="${nav.onPageSpecific(currentPage, 'register')}">

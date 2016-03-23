@@ -5,7 +5,7 @@
 <c:choose>
 	<c:when test="${nav.onPage(currentPage, 'register')}">Twórcy | Rejestracja</c:when>
 	<c:when test="${nav.onPage(currentPage, 'login')}">Twórcy | Logowanie</c:when>
-	<c:when test="${nav.onPage(currentPage, 'profile')}">Twórcy | Profil</c:when>
+	<c:when test="${nav.onPage(currentPage, 'profile')}">Twórcy | Profile</c:when>
 
 	<c:when test="${nav.onPage(currentPage, 'newsSpecific')}">Twórcy | Przeglądanie artykułu</c:when>
 	<c:when test="${nav.onPage(currentPage, 'newNews')}">Twórcy | Tworzenie artykułów</c:when>

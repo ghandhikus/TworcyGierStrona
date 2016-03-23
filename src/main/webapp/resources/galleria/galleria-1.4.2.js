@@ -5158,7 +5158,6 @@ this.prependChild( 'info', 'myElement' );
                     Utils.toggleQuality( next.image, false );
 
                     // remove the image panning, if applied
-                    // TODO: rethink if this is necessary
                     self.removePan();
 
                     // set the captions and counter

@@ -3,19 +3,23 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
+<%-- ### Urls --%>
 <%-- CSS --%>
 <spring:url value="/resources/css/sb-admin.css" var="sbAdmin" />
-<spring:url value="/resources/css/font-awesome.css"
-	var="fontAwesome" />
 <spring:url value="/resources/galleria/galleria-1.4.2.min.js" var="jsGalleria" />
-	
+
+<%-- Font --%>
+<spring:url value="/resources/css/font-awesome.css" var="fontAwesome" />
+<spring:url value="https://fonts.googleapis.com/css?family=PT+Sans:400,700" var="ptSans" />
+
 <%-- Images --%>
 <spring:url value="/resources/img/logo.png" var="logo" />
 
 <%-- Pages --%>
 <spring:url value="${requestScope['javax.servlet.forward.request_uri']}" var="currentPage" />
 
-<%-- Document --%>
+
+<%-- ### Document --%>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -37,6 +41,7 @@
 
 <!-- Custom Fonts -->
 <link href="${fontAwesome}" rel="stylesheet" type="text/css">
+<link href="${ptSans}" rel="stylesheet" type="text/css">
 
 <!-- Galleria -->
 <script src="${jsGalleria}"></script>

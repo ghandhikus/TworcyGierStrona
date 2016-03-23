@@ -13,7 +13,7 @@
 		<h1 class="news title">
 			<a href="${nav.get('newsSpecific')}${news.newsID}"><c:out value="${news.title}" /></a>
 			<%-- Edit Button --%>
-			<c:if test="${account.getAccess()>0}">
+			<c:if test="${account.getAccess()>0 || account.id == news.newsID}">
 				<a href="${nav.get('editNews')}/${news.newsID}" class="btn btn-default fa fa-edit"
 					style="font-size: 15px;"> Edytuj</a>
 			</c:if>
@@ -32,7 +32,7 @@
 			<%-- No need to split if description is short --%>
 			<c:if test="${news.content.length()>512}">
 				<p>
-					<p class="news content"><c:out value="${htmlUtils.split(bbcode.parse(news.content),512)}" escapeXml="false" />...</p>
+					<span class="news content"><c:out value="${htmlUtils.split(bbcode.parse(news.content),512)}" escapeXml="false" />...</span>
 					<a href="${nav.get('newsSpecific')}${news.newsID}"><i>Czytaj więcej</i></a>
 				</p>
 			</c:if>
@@ -47,7 +47,7 @@
 	
 	<%-- Author --%>
 	<p class="news author" style="color:#aaa;display:inline-block;">
-		wstawił <a href="${nav.get('profile')}${news.authorID}">${newsService.getAuthorName(news.authorID)}</a>
+		wstawił <a href="${nav.get('profileSpecific')}${news.authorID}">${newsService.getAuthorName(news.authorID)}</a>
 	</p>
 	
 	<%-- Time --%>

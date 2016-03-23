@@ -15,6 +15,22 @@
 		<li><i class="fa fa-dashboard"></i> <a href="${nav.get('home')}">Strona główna</a></li>
 	</c:otherwise>
 </c:choose>
+<%-- ### Profile --%>
+<%-- Account Profile --%>
+<c:if test="${nav.onPageSpecific(currentPage, 'profile')}">
+	<li><i class="fa fa-list"></i> Profile</li>
+	<li class="active"><i class="fa fa-file"></i> Twój profil</li>
+</c:if>
+<%-- Specific Profile --%>
+<c:if test="${nav.onPage(currentPage, 'profileSpecific')}">
+	<li><i class="fa fa-list"></i> Profile</li>
+	<li class="active"><i class="fa fa-file"></i> Profil konta</li>
+</c:if>
+<%-- Edit Profile --%>
+<c:if test="${nav.onPage(currentPage, 'profileEdit')}">
+	<li><i class="fa fa-list"></i> Profile</li>
+	<li class="active"><i class="fa fa-file"></i> Edycja profilu</li>
+</c:if>
 
 <%-- ### Accounts --%>
 <%-- Register --%>
@@ -27,12 +43,6 @@
 <c:if test="${nav.onPage(currentPage, 'login')}">
 	<li><i class="fa fa-list"></i> Konta</li>
 	<li class="active"><i class="fa fa-file"></i> Logowanie</li>
-</c:if>
-
-<%-- Profile --%>
-<c:if test="${nav.onPage(currentPage, 'profile')}">
-	<li><i class="fa fa-list"></i> Konta</li>
-	<li class="active"><i class="fa fa-file"></i> Profil</li>
 </c:if>
 
 <%-- ### General --%>

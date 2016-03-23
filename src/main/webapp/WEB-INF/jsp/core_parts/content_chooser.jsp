@@ -15,9 +15,19 @@
     <c:when test="${nav.onPage(currentPage, 'login')}">
 		<jsp:include page="content/login.jsp" />
     </c:when>
-	<%-- Profile --%>
-    <c:when test="${nav.onPage(currentPage, 'profile')}">
-		<jsp:include page="content/profile.jsp" />
+    
+<%-- ### Profile --%>
+	<%-- Account Profile --%>
+    <c:when test="${nav.onPageSpecific(currentPage, 'profile')}">
+		<jsp:include page="content/profile/profile_single.jsp" />
+    </c:when>
+	<%-- Specific --%>
+    <c:when test="${nav.onPage(currentPage, 'profileSpecific')}">
+		<jsp:include page="content/profile/profile_single.jsp" />
+    </c:when>
+	<%-- Edit --%>
+    <c:when test="${nav.onPage(currentPage, 'profileEdit')}">
+		<jsp:include page="content/profile/profile_edit.jsp" />
     </c:when>
 
 

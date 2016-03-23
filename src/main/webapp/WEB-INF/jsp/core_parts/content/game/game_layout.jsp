@@ -13,24 +13,29 @@
 		<h1>
 			<a href="${nav.get('gameSpecific')}${game.gameId}"><c:out value="${game.title}" /></a>
 			<%-- Edit Button --%>
-			<c:if test="${account.getAccess()>0}">
+			<c:if test="${account.getAccess()>0 || account.id == game.gameId}">
 				<a href="${nav.get('editGame')}/${game.gameId}" class="btn btn-default fa fa-edit"
 					style="font-size: 15px;"> Edytuj</a>
 			</c:if>
 		</h1>
 	</c:if>
 	
-	<%-- Images --%>
-	<c:if test="${game.images!=null || game.images.size()>0}">
+	<%-- Media --%>
+	<c:if test="${game.media!=null || game.media.size()>0}">
+		<%-- Miniature for short --%>
 		<c:if test="${gameShortDesc==true}">
-			<%-- Single miniature photo --%>
-			<img src="<spring:url value="/resources/upload/games/${game.gameId}/${game.images.get(0)}"/>" alt="Can't load the image"/>
+			<c:set var="media" value="${game.media.get(0)}" scope="request" />
+			<jsp:include page="game_media.jsp" />
 		</c:if>
+		
+		<%-- Galleria for long description --%>
 		<c:if test="${gameShortDesc!=true}">
 			<%-- Galleria --%>
 			<div class="game galleria">
-				<c:forEach var="img" items="${game.images}">
-					<img src="<spring:url value="/resources/upload/games/${game.gameId}/${img}"/>" alt="Can't load the image"/>
+				<c:forEach var="n" items="${game.media}">
+					<c:set var="galleria" value="${true}" scope="request" />
+					<c:set var="media" value="${n}" scope="request" />
+					<jsp:include page="game_media.jsp" />
 				</c:forEach>
 			</div>
 			
@@ -49,7 +54,7 @@
 			<%-- No need to split if description is short --%>
 			<c:if test="${game.description.length()>512}">
 				<p>
-					<p class="game description"><c:out value="${htmlUtils.split(bbcode.parse(game.description),512)}" escapeXml="false" />...</p>
+					<span class="game description"><c:out value="${htmlUtils.split(bbcode.parse(game.description),512)}" escapeXml="false" />...</span>
 					<a href="${nav.get('gameSpecific')}${game.gameId}"><i>Czytaj więcej</i></a>
 				</p>
 			</c:if>
@@ -61,10 +66,12 @@
 			<p><c:out value="${bbcode.parse(game.description)}" escapeXml="false" /></p>
 		</c:otherwise>
 	</c:choose>
+	
 	<%-- Author --%>
 	<p style="color:#aaa;display:inline-block;">
-		dodał <a href="${nav.get('profile')}${game.authorId}">${gameService.getAuthorName(game.authorId)}</a>
+		dodał <a href="${nav.get('profileSpecific')}${game.authorId}">${gameService.getAuthorName(game.authorId)}</a>
 	</p>
+	
 	<%-- Time --%>
 	<c:choose>
 		<c:when test="${game.getDateUpdated() != null}">
