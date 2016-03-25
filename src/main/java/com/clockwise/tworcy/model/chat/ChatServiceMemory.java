@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
+import org.apache.log4j.Logger;
 import org.kefirsf.bb.BBProcessorFactory;
 import org.kefirsf.bb.TextProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public @Service @Repository class ChatServiceMemory implements ChatService {
 	private List<String> messages = Collections.synchronizedList(new ArrayList<String>());
 	private final Gson gson = new Gson();
 	
+	private static final Logger logger = Logger.getLogger(ChatServiceMemory.class);
 	
 	@PostConstruct
 	public void init()
@@ -76,7 +78,7 @@ public @Service @Repository class ChatServiceMemory implements ChatService {
 		{
 			synchronized(messages)
 			{
-				System.out.println(account.getName()+": "+msg);
+				logger.info(account.getName()+": "+msg);
 				
 				msg = "[url=" + servletContext.getContextPath() + "/profile/get/" +
 						account.getId()+"][b]" +account.getName() + "[/b][/url]: " + msg;

@@ -59,11 +59,11 @@ public class Game {
 		this.media = media;
 	}
 	
-	void setTitle(String title) {
+	public void setTitle(String title) {
 		this.title = title;
 	}
 
-	void setDescription(String description) {
+	public void setDescription(String description) {
 		this.description = description;
 	}
 

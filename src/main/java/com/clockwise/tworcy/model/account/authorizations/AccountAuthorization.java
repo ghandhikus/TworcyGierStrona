@@ -1,5 +1,6 @@
 package com.clockwise.tworcy.model.account.authorizations;
 
+import org.apache.log4j.Logger;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -7,24 +8,19 @@ import org.springframework.stereotype.Service;
 
 public @Service class AccountAuthorization implements AuthenticationProvider {
 
-	{
-		System.out.println("AccountAuthorization.construct");
-	}
-	
-	static {
-		System.out.println("AccountAuthorization.static_construct");
-	}
+
+	private static final Logger logger = Logger.getLogger(AccountAuthorization.class);
 	
 	@Override
 	public Authentication authenticate(Authentication authentication)
 			throws AuthenticationException {
-		System.out.println("AccountAuthorization.authenticate("+authentication.toString()+")");
+		logger.debug("AccountAuthorization.authenticate("+authentication.toString()+")");
 		return null;
 	}
 
 	@Override
 	public boolean supports(Class<?> authentication) {
-		System.out.println("AccountAuthorization.supports("+authentication.toString()+")");
+		logger.debug("AccountAuthorization.supports("+authentication.toString()+")");
 		return (authentication.isAssignableFrom(ModeratorRole.class));
 	}
 

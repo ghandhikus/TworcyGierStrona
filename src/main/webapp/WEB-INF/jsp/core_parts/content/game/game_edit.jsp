@@ -4,6 +4,14 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <spring:url value="${requestScope['javax.servlet.forward.request_uri']}"
 	var="currentPage" />
+<spring:url value="/resources/js/jquery.sceditor.bbcode.min.js"
+	var="wysiwygEditorJS" />
+<spring:url value="/resources/css/themes/monocons.min.css"
+	var="wysiwygEditorCSS" />
+<spring:url value="/resources/languages/pl.js"
+	var="wysiwygEditorLocale" />
+<spring:url value="/resources/img/"
+	var="wysiwygEditorEmoticons" />
 
 <div class="row">
 	<div class="col-lg-12">
@@ -20,8 +28,34 @@
 		<%-- ### Description --%>
 			<h3><i class="fa fa-fw fa-file-text"></i> Opis</h3>
 			<br />
-			<textarea name="description"
-				style="color: black; width:100%; min-height: 300px; max-height:800px;">${(gameDesc!=null)? gameDesc : game.description}</textarea>
+			<script type="text/javascript" src="${wysiwygEditorJS}"></script>
+			<script type="text/javascript" src="${wysiwygEditorLocale}"></script>
+			<script>
+				$("head link[rel='stylesheet']").last().after('<link rel="stylesheet" href="${wysiwygEditorCSS}" type="text/css" media="all" />');
+				$(function() {
+					// Set up the editor
+				    $(".game.edit.description").sceditor({
+				        plugins: "bbcode",
+						style: "${wysiwygEditorCSS}",
+						locale: "pl-PL",
+						emoticonsRoot: "${wysiwygEditorEmoticons}",
+						autoUpdate: true,
+						width: "98%",
+						height: 350
+				    });
+				    
+					// Form submit
+				    $('.game.edit.submit').on("click",function() {
+				    	var instance = $('.game.edit.description').sceditor('instance');
+					    var bbcode = instance.toBBCode(instance.val());
+					    $('textarea.game.edit.description').val(bbcode);
+					    console.log("bbcode: "+bbcode);
+					    $('.game.edit.submit').submit();
+				    });
+				});
+			</script>
+			<%-- <textarea class="game edit description" name="description" style="color: black; width:100%; min-height: 300px; max-height:800px;">${(gameDesc!=null)? gameDesc : game.description}</textarea> --%>
+			<input type="hidden" class="game edit description" name="description" value="${(gameDesc!=null)? gameDesc : game.description}"/>
 			<br />
 			<hr/>
 		<%-- ### Media --%>
@@ -123,7 +157,7 @@
 			<br />
 			
 			<%-- Form submit --%>
-			<input type="submit" class="btn btn-default" value="Wyślij edycję" />
+			<input type="submit" class="game edit submit btn btn-default" value="Wyślij edycję" />
 			
 			<br />
 			<br />

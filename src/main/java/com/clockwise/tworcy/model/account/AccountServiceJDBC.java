@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,8 @@ public @Service("userDetailsService") class AccountServiceJDBC implements UserDe
 	private @Autowired AccountDAO db;
 	private @Autowired PasswordHasher hasher;
 	private @Autowired AuthenticationProvider auth;
+	
+	private static final Logger logger = Logger.getLogger(AccountServiceJDBC.class);
 
 	public @Override void update(Account player) {
 		db.update(player);
@@ -58,7 +61,7 @@ public @Service("userDetailsService") class AccountServiceJDBC implements UserDe
 		
 		if(principal instanceof Account) {
 			Account acc = (Account) principal;
-			System.out.println("Account found: "+acc.getName());
+			logger.debug("Account found: "+acc.getName());
 			return acc;
 		} else if(principal instanceof String) {
 			// Not authenticated
@@ -67,10 +70,10 @@ public @Service("userDetailsService") class AccountServiceJDBC implements UserDe
 		else if (principal == null)
 		{
 			// Shouldn't
-			System.out.println("AccountService principal is null");
+			logger.error("AccountService principal is null");
 			return null;
 		} else {
-			System.out.println("AccountService principal type is: "+principal.getClass());
+			logger.error("AccountService principal type is: "+principal.getClass());
 		}
 		return null;
 	}

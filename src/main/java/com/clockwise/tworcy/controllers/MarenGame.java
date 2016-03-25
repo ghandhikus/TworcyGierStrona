@@ -7,6 +7,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +26,9 @@ public class MarenGame {
 	//private double spike = 0.001496983015127015d;
 	private double spike = 0.0010d;
 	private final Gson gson = new Gson();
+
+	private static final Logger logger = Logger.getLogger(MarenGame.class);
+	
 	@RequestMapping("/")
 	public ModelAndView inGame(HttpServletRequest request, HttpServletResponse response)
 	{
@@ -84,7 +88,7 @@ public class MarenGame {
 				// Teleport strikes
 				if(length>0.008d)
 				{
-					System.out.println("Teleport");
+					logger.warn("Teleport");
 					game.cheatStrike(player, 10);
 				}
 				// Speed hack strikes
@@ -101,7 +105,7 @@ public class MarenGame {
 					spike=length;
 				
 				if(length>0.0015d)
-					System.out.println("spike("+timeDifference+", "+player.getPingJumps()+") : "+spike);
+					logger.warn("spike("+timeDifference+", "+player.getPingJumps()+") : "+spike);
 				
 				// Debugs
 				//else if(length>0.125d*game.getSpeed()) System.out.println("Possible cheater [length/time=("+length+")]\t: "+player.getAccountID());
@@ -110,14 +114,14 @@ public class MarenGame {
 
 				// Debug
 				if(game.getCheatStrikes(player)>1)
-					System.out.println("Speed strikes("+game.getCheatStrikes(player)+") [length=("+Math.round(length*100000)/100000f+")]\t: "+account.getName());
+					logger.warn("Speed strikes("+game.getCheatStrikes(player)+") [length=("+Math.round(length*100000)/100000f+")]\t: "+account.getName());
 				
 				// Update
 				try {
 					game.update(player);
 				} catch (Cheater e) {
 					// Remove him if he cheats
-					System.out.println("Removing Cheater [speed=("+length+") allowed("+0.15d*game.getSpeed()+")] : "+player.getAccountID());
+					logger.warn("Removing Cheater [speed=("+length+") allowed("+0.15d*game.getSpeed()+")] : "+player.getAccountID());
 					request.getSession().removeAttribute("account");
 					game.logout(player);
 					account = null;

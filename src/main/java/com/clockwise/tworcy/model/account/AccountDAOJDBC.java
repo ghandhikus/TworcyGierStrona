@@ -2,17 +2,21 @@ package com.clockwise.tworcy.model.account;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-public @Repository class AccountDAOJDBC implements AccountDAO {
+public @Transactional @Repository class AccountDAOJDBC implements AccountDAO {
 	
 	private @Autowired JdbcTemplate jdbcTemplate;
 
+	private static final Logger logger = Logger.getLogger(AccountDAOJDBC.class);
 	
 	public @Override Account create(String username, String password) {
+		if(username == null || password == null) return null;
 		// Insert to db
 		String sql = "INSERT INTO accounts (username, password, enabled, locked) VALUES (?, ?, ?, ?)";
 		jdbcTemplate.update(sql, username, password, true, false);
@@ -66,7 +70,7 @@ public @Repository class AccountDAOJDBC implements AccountDAO {
 		jdbcTemplate.update(sql, id);
 
 		// Debug
-		System.out.println("Removed Record from Players where id = " + id);
+		logger.debug("Removed Record from Players where id = " + id);
 	}
 
 	@Override
@@ -76,6 +80,6 @@ public @Repository class AccountDAOJDBC implements AccountDAO {
 		jdbcTemplate.update(sql, account.getName(), account.getId());
 
 		// Debug
-		System.out.println("Updated Record with id = " + account.getId());
+		logger.debug("Updated Record with id = " + account.getId());
 	}
 }

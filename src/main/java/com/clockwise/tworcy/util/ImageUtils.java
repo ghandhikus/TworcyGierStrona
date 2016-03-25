@@ -9,10 +9,12 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.clockwise.tworcy.controllers.Games;
 import com.clockwise.tworcy.exception.BadImageException;
 import com.clockwise.tworcy.misc.MimeTypes;
 
@@ -20,10 +22,12 @@ import com.clockwise.tworcy.misc.MimeTypes;
 public class ImageUtils {
 	
 	@Autowired ServletContext context;
+
+	private static final Logger logger = Logger.getLogger(ImageUtils.class);
 	
 	@PostConstruct
 	public void init() {
-		System.out.println(this.getClass().getName()+" saves images to "+context.getRealPath("/resources/upload/"));
+		logger.info("Saves images to "+context.getRealPath("/resources/upload/"));
 	}
 	
 	/**
@@ -42,7 +46,7 @@ public class ImageUtils {
 			return true;
 
 		default:
-			System.out.println("Unknown file type in "+this.getClass()+"#validateImage ("+c+")");
+			logger.debug("Unknown file type in method validateImage ("+c+")");
 			throw new BadImageException(Messages.getString("Exception.badImage") + c);
 		}
 	}
@@ -78,7 +82,7 @@ public class ImageUtils {
 	 * Removes non-existing image files from the list.
 	 * @param mediaNames string array which contains image lists
 	 * @param mediaDirectory name of the folder in which image files should might be stored
-	 * @param skipPrefix skips names with prefixes ex: yt:xf1a24fA
+	 * @param skipPrefix skips name removal from the mediaNames, by given prefixes ex: yt:xf1a24fA
 	 * @return modified array
 	 */
 	public List<String> removeNonExistentImages(List<String> mediaNames, String mediaDirectory, String... skipPrefix) {
@@ -94,15 +98,20 @@ public class ImageUtils {
 			
 			// Skips prefixes
 			for(int s=0;s<skipPrefix.length;s++)
-				if(fileName.startsWith(skipPrefix[s]))
+				if(fileName.startsWith(skipPrefix[s])) {
+					ret.add(mediaNames.get(i));
+					logger.debug("ImageUtils skipped prefix: "+skipPrefix[s]);
 					continue MediaLoop; //<- Skips the previous for
-			
+				}
 			// Create the file
 			file = new File(context.getRealPath("/resources/upload/") + mediaDirectory + "/" + fileName);
 			
 			// Remove checks
-			if(file.exists() && file.isFile())
+			if(file.exists() && file.isFile()) {
+				logger.debug("ImageUtils accepted media: "+mediaNames.get(i));
 				ret.add(mediaNames.get(i));
+			} else
+				logger.debug("ImageUtils removed media: "+mediaNames.get(i));
 		}
 		
 		// Finished

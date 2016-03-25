@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
+import com.clockwise.tworcy.controllers.Games;
 import com.clockwise.tworcy.model.account.AccountService;
 
 @Configuration
@@ -32,6 +34,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	private @Autowired DataSource dataSource;
 
+	private static final Logger logger = Logger.getLogger(SecurityConfiguration.class);
 	public @Autowired void configureGlobalSecurity(
 			AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(accounts).passwordEncoder(new BCryptPasswordEncoder());
@@ -92,7 +95,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		return new AccessDeniedHandler() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-                System.err.println(this.getClass().getSimpleName()+".accessDeniedHandler\n"+accessDeniedException.getMessage());
+                logger.error(this.getClass().getSimpleName()+".accessDeniedHandler\n"+accessDeniedException.getMessage());
                 // response.setStatus(HttpStatus.FORBIDDEN.value());
             }
         };

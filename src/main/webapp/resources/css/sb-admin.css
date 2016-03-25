@@ -267,10 +267,19 @@ ul.alert-dropdown {
 /*
  * Game model
  */
-.game.edit.image_sorter img {
-	height: 128px;
-	padding:3px;
+.game.edit.media_sorter {
+	border-radius:	8px;
+	padding:		6px;
+	background:		rgba(0,0,0,0.05);
+	display:		inline-block;
 }
+.game.edit.media_sorter img {
+	width:			200px;
+	padding:		3px;
+	margin:			3px;
+	border-radius:	8px;
+	position:		relative;
+}s
  
 div.game.galleria{
 	min-height:	128px;

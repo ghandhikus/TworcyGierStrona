@@ -74,7 +74,7 @@
 		<c:if test="${game!=null}">
 			${game.title}&nbsp;
 			<%-- Edit Button on specific --%>
-			<c:if test="${nav.onPage(currentPage, 'gameSpecific') == true && account.getAccess()>0}">
+			<c:if test="${nav.onPage(currentPage, 'gameSpecific') == true && (account.getAccess()>0 || account.id == game.gameId)}">
 				<a href="${nav.get('editGame')}/${game.gameId}" class="btn btn-default fa fa-edit"
 					style="font-size: 15px;"> Edytuj</a>
 			</c:if>

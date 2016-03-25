@@ -4,8 +4,7 @@ import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 
 public @Component("htmlUtils") class HTMLUtils {
-
-
+	
 	/**
 	 * Splits the string on given position. Fixes or removes the tags which are broken after splitting.
 	 * @see Jsoup#parse

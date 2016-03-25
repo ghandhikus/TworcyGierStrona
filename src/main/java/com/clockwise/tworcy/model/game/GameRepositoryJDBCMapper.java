@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.clockwise.tworcy.controllers.Games;
 import com.google.gson.Gson;
 
 class GameRepositoryJDBCMapper implements RowMapper<Game> {
@@ -35,7 +37,6 @@ class GameRepositoryJDBCMapper implements RowMapper<Game> {
 		if(json == null) {
 			return null;
 		} else {
-			//System.out.println(json);
 			String[] arr = gson.fromJson(json, String[].class);
 			// Attempt to parse the json
 			List<String> parsed = new ArrayList<String>();

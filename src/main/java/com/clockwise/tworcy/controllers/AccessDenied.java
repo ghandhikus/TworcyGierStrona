@@ -1,5 +1,6 @@
 package com.clockwise.tworcy.controllers;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,12 +14,14 @@ public @RequestMapping("/Access_Denied") @Controller class AccessDenied {
 
 	@Autowired AccountService accounts;
 	@Autowired NewsService news;
+
+	private static final Logger logger = Logger.getLogger(AccessDenied.class);
 	
 	@RequestMapping({"","/"})
 	public @ResponseBody String home() {
 		Account acc = accounts.getLogged();
 		if(acc!=null)
-			System.out.println("Someone got Access Denied\n"+acc.toString());
+			logger.warn("Someone got Access Denied\n"+acc.toString());
 		return "<html><body><h1>Access Denied</h1></body></html>";
 	}
 }
