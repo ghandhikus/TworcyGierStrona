@@ -10,7 +10,7 @@
 			<c:when test="${error!=null}">Wystąpił błąd: ${error}</c:when>
 			<c:when test="${news==null}">Nie można wczytać newsu.</c:when>
 			<c:otherwise>
-				<form:form modelAttribute="news" action="${nav.get('newsEdit')}/${news.newsID}?${_csrf.parameterName}=${_csrf.token}" method="post">
+				<form:form modelAttribute="news" action="${nav.get('newsEdit')}/${news.newsId}?${_csrf.parameterName}=${_csrf.token}" method="post">
 					<b>Tytuł</b>
 					<br />
 					<input type="text" name="title" style="color: black; width: 100%;" value="${news.title}">

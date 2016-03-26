@@ -27,7 +27,7 @@ public @Service("newsService") class NewsServiceHibernate implements NewsService
 	private void prepare(News news, Account account)
 	{
 		news.setDate(DateTime.now());
-		news.setAuthorID(account.getId());
+		news.setAuthorId(account.getId());
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public @Service("newsService") class NewsServiceHibernate implements NewsService
 		News news = new News();
 		news.setTitle(title);
 		news.setContent(content);
-		news.setAuthorID(account.getId());
+		news.setAuthorId(account.getId());
 		
 		return addNews(news, account);
 	}
@@ -54,7 +54,7 @@ public @Service("newsService") class NewsServiceHibernate implements NewsService
 		
 		db.update(news);
 		
-		return db.getSpecific(news.getNewsID());
+		return db.getSpecific(news.getNewsId());
 	}
 
 	public @Override News updateNews(Integer id, String title, String content, Account account) throws AccessControlException, NullPointerException, ParameterTooLongException {

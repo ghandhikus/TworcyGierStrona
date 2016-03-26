@@ -11,10 +11,10 @@
 		<hr>
 		
 		<h1 class="news title">
-			<a href="${nav.get('newsSpecific')}${news.newsID}"><c:out value="${news.title}" /></a>
+			<a href="${nav.get('newsSpecific')}${news.newsId}"><c:out value="${news.title}" /></a>
 			<%-- Edit Button --%>
-			<c:if test="${account.getAccess()>0 || account.id == news.newsID}">
-				<a href="${nav.get('editNews')}/${news.newsID}" class="btn btn-default fa fa-edit"
+			<c:if test="${account.getAccess()>0 || account.id == news.newsId}">
+				<a href="${nav.get('editNews')}/${news.newsId}" class="btn btn-default fa fa-edit"
 					style="font-size: 15px;"> Edytuj</a>
 			</c:if>
 		</h1>
@@ -22,7 +22,7 @@
 	
 	<%-- Edit Button on specific --%>
 	<c:if test="${nav.onPage(currentPage, 'newsSpecific') == true && account.getAccess()>0}">
-		<a href="${nav.get('editNews')}/${news.newsID}" class="btn btn-default fa fa-edit"
+		<a href="${nav.get('editNews')}/${news.newsId}" class="btn btn-default fa fa-edit"
 			style="font-size: 15px;"> Edytuj</a>
 	</c:if>
 	
@@ -33,7 +33,7 @@
 			<c:if test="${news.content.length()>512}">
 				<p>
 					<span class="news content"><c:out value="${htmlUtils.split(bbcode.parse(news.content),512)}" escapeXml="false" />...</span>
-					<a href="${nav.get('newsSpecific')}${news.newsID}"><i>Czytaj więcej</i></a>
+					<a href="${nav.get('newsSpecific')}${news.newsId}"><i>Czytaj więcej</i></a>
 				</p>
 			</c:if>
 			<c:if test="${news.content.length()<=512}">
@@ -47,7 +47,7 @@
 	
 	<%-- Author --%>
 	<p class="news author" style="color:#aaa;display:inline-block;">
-		wstawił <a href="${nav.get('profileSpecific')}${news.authorID}">${newsService.getAuthorName(news.authorID)}</a>
+		wstawił <a href="${nav.get('profileSpecific')}${news.authorId}">${newsService.getAuthorName(news.authorId)}</a>
 	</p>
 	
 	<%-- Time --%>

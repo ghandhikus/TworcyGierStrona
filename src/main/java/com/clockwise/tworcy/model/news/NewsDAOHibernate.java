@@ -46,9 +46,13 @@ import com.clockwise.tworcy.model.account.AccountService;
 	 */
 	public NewsDAOHibernate() throws Exception {
 		try {
-			newsTableFieldId = News.class.getField("newsID").getAnnotation(Column.class).name();
-			newsTableFieldAuthorId = News.class.getField("authorID").getAnnotation(Column.class).name();
-			newsTableFieldDate = News.class.getField("date").getAnnotation(Column.class).name();
+			newsTableFieldId = News.class.getDeclaredField("newsId").getName();
+			newsTableFieldAuthorId = News.class.getDeclaredField("authorId").getName();
+			newsTableFieldDate = News.class.getDeclaredField("date").getName();
+
+			logger.debug("newsTableFieldId : "+newsTableFieldId);
+			logger.debug("newsTableFieldAuthorId : "+newsTableFieldAuthorId);
+			logger.debug("newsTableFieldDate : "+newsTableFieldDate);
 		} catch (NoSuchFieldException | SecurityException e) {
 			logger.error(e.getMessage());
 			throw e;
@@ -71,7 +75,7 @@ import com.clockwise.tworcy.model.account.AccountService;
 		getSession().persist(news);
 		
 		// Return news with changed id
-		return getByAuthorId(news.getAuthorID());
+		return getByAuthorId(news.getAuthorId());
 	}
 
 	public @Override void update(News news) {
@@ -165,12 +169,12 @@ import com.clockwise.tworcy.model.account.AccountService;
 		transaction.begin();
 		try {
 			// Catch recent news
-			news = (News) getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldId, news.getNewsID())).uniqueResult();
+			news = (News) getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldId, news.getNewsId())).uniqueResult();
 			
 			// Populate archive object
 			NewsArchive archive = new NewsArchive();
-			archive.setNewsID(news.getNewsID());
-			archive.setAuthorID(news.getAuthorID());
+			archive.setNewsID(news.getNewsId());
+			archive.setAuthorID(news.getAuthorId());
 			archive.setDate(news.getDate());
 			archive.setTitle(news.getTitle());
 			archive.setContent(news.getContent());
@@ -195,6 +199,6 @@ import com.clockwise.tworcy.model.account.AccountService;
 	
 	public String getAuthorName(News news)
 	{
-		return getAuthorName(news.getAuthorID());
+		return getAuthorName(news.getAuthorId());
 	}
 }

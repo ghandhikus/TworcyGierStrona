@@ -55,7 +55,7 @@ public @Component class AccountPermissions {
 	// News checks
 	public boolean isAuthor(News news, Account account)
 	{
-		return (account.getId().equals(news.getAuthorID()));
+		return (account.getId().equals(news.getAuthorId()));
 	}
 	public boolean canAddNews(Account account)
 	{

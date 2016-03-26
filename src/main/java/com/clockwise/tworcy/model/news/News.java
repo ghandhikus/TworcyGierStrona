@@ -19,11 +19,11 @@ public class News implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "newsid", nullable = false)
-	private int newsID;
+	@Column(name = "newsId", nullable = false)
+	private int newsId;
 	
-	@Column(name = "authorid", nullable = false)
-	private int authorID;
+	@Column(name = "authorId", nullable = false)
+	private int authorId;
 	
 	@Column(name = "date", nullable = false)
 	@Type(type="org.jadira.usertype.dateandtime.joda.PersistentDateTime")
@@ -36,11 +36,11 @@ public class News implements Serializable {
 	private String content;
 	
 
-	public int getNewsID() {
-		return newsID;
+	public int getNewsId() {
+		return newsId;
 	}
-	public int getAuthorID() {
-		return authorID;
+	public int getAuthorId() {
+		return authorId;
 	}
 	public DateTime getDate() {
 		return date;
@@ -53,11 +53,11 @@ public class News implements Serializable {
 	}
 	
 
-	void setNewsID(int newsID) {
-		this.newsID = newsID;
+	void setNewsId(int newsId) {
+		this.newsId = newsId;
 	}
-	void setAuthorID(int authorID) {
-		this.authorID = authorID;
+	void setAuthorId(int authorId) {
+		this.authorId = authorId;
 	}
 	void setDate(DateTime date) {
 		this.date = date;
