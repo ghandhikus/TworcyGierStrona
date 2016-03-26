@@ -42,6 +42,7 @@
             <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
+                <prop key="jadira.usertype.autoRegisterUserTypes">true</prop>
             </props>
         </property>
     </bean>

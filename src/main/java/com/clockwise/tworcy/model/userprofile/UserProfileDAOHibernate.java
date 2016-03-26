@@ -10,7 +10,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-public @Transactional @Repository class UserProfileRepositoryHibernate implements UserProfileRepository {
+public @Transactional @Repository class UserProfileDAOHibernate implements UserProfileDAO {
 
 	private @Autowired SessionFactory sessionFactory;
 	

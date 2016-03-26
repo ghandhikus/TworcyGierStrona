@@ -2,7 +2,6 @@ package com.clockwise.tworcy.model.account;
 
 import java.util.List;
 
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Repository;
 
 @Repository interface AccountDAO {
@@ -12,5 +11,5 @@ import org.springframework.stereotype.Repository;
 	   
 	   public Account get(Integer id);
 	   public Account get(String name);
-	   public List<Account> getList();
+	   public List<Account> getList(Integer count, Integer offset);
 }

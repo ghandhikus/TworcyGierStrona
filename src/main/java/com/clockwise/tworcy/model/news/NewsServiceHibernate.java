@@ -18,10 +18,9 @@ import com.mysql.jdbc.Messages;
 /**
  * @author Daniel
  */
-public @Service("newsService") class NewsServiceDB implements NewsService {
+public @Service("newsService") class NewsServiceHibernate implements NewsService {
 
-	private @Autowired NewsRepository db;
-	
+	private @Autowired NewsDAO db;
 	private @Autowired AccountPermissions permissions;
 	
 	
@@ -75,15 +74,6 @@ public @Service("newsService") class NewsServiceDB implements NewsService {
 		permissions.checkRemovingNews(news, account);
 		
 		db.delete(news);
-	}
-
-	@Override
-	public void removeBy(Integer newsID, Account account) throws AccessControlException {
-		if(newsID == null) throw new NullPointerException(Messages.getString("News.notSetID"));
-		permissions.checkParameter(account);
-		permissions.checkRemovingNews(account);
-		
-		db.delete(newsID);
 	}
 
 	@Override

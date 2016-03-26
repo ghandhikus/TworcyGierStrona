@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-public @Repository interface UserProfileRepository {
+public @Repository interface UserProfileDAO {
 	void addUserProfile(UserProfile userProfile);
 	UserProfile getUserProfileById(Integer id);
 	void updateUserProfile(UserProfile userProfile);

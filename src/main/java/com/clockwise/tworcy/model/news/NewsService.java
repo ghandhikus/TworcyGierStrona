@@ -48,16 +48,8 @@ public @Service interface NewsService {
 	public void removeBy(News news, Account account) throws AccessControlException, NullPointerException, ParameterTooLongException;
 	
 	/**
-	 * Removes the news by this account.
-	 * @param newsID of news which are going to be removed.
-	 * @param account which removes the news.
-	 * @throws AccessControlException if account has no permission to remove news.
-	 */
-	public void removeBy(Integer newsID, Account account) throws AccessControlException;
-
-	/**
 	 * Catches the count of records from database. It is fast if cached version of repository will be used.
-	 * @see NewsRepositoryCachedDB
+	 * @see NewsDAOHibernate
 	 */
 	public Integer getNewsCount();
 	

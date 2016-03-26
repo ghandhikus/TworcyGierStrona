@@ -20,13 +20,13 @@ import org.springframework.stereotype.Service;
 import com.clockwise.tworcy.util.Messages;
 import com.clockwise.tworcy.util.PasswordHasher;
 
-public @Service("userDetailsService") class AccountServiceJDBC implements UserDetailsService, AccountService {
+public @Service("userDetailsService") class AccountServiceHibernate implements UserDetailsService, AccountService {
 
 	private @Autowired AccountDAO db;
 	private @Autowired PasswordHasher hasher;
 	private @Autowired AuthenticationProvider auth;
 	
-	private static final Logger logger = Logger.getLogger(AccountServiceJDBC.class);
+	private static final Logger logger = Logger.getLogger(AccountServiceHibernate.class);
 
 	public @Override void update(Account player) {
 		db.update(player);
@@ -36,8 +36,8 @@ public @Service("userDetailsService") class AccountServiceJDBC implements UserDe
 		db.delete(id);
 	}
 
-	public @Override List<Account> getList() {
-		return db.getList();
+	public @Override List<Account> getList(Integer count, Integer offset) {
+		return db.getList(count, offset);
 	}
 
 	public @Override Account get(Integer id) {

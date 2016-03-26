@@ -13,12 +13,15 @@ import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 @Entity
-@Table(name = "News")
-public class News implements Serializable {
-	private static final long serialVersionUID = 3037628203079572107L;
+@Table(name = "NewsArchive")
+public class NewsArchive implements Serializable {
+	private static final long serialVersionUID = 2094782097269833475L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", nullable = false)
+	private int id;
+	
 	@Column(name = "newsid", nullable = false)
 	private int newsID;
 	
@@ -36,6 +39,9 @@ public class News implements Serializable {
 	private String content;
 	
 
+	public int getId() {
+		return id;
+	}
 	public int getNewsID() {
 		return newsID;
 	}
@@ -52,7 +58,9 @@ public class News implements Serializable {
 		return content;
 	}
 	
-
+	void setId(int id) {
+		this.id = id;
+	}
 	void setNewsID(int newsID) {
 		this.newsID = newsID;
 	}

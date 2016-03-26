@@ -21,7 +21,7 @@ import com.clockwise.tworcy.model.account.Access;
 import com.clockwise.tworcy.model.account.Account;
 import com.clockwise.tworcy.model.account.AccountService;
 import com.clockwise.tworcy.model.news.News;
-import com.clockwise.tworcy.model.news.NewsRepository;
+import com.clockwise.tworcy.model.news.NewsDAO;
 import com.clockwise.tworcy.model.news.NewsService;
 
 /**
@@ -37,7 +37,7 @@ public class NewsServiceTests {
 	@Autowired AccountService accounts;
 	
 	// Database for making sure that data will be deleted
-	@Autowired NewsRepository db;
+	@Autowired NewsDAO db;
 	
 	// Cleanup
 	List<News> toDelete = new ArrayList<>();
@@ -172,14 +172,14 @@ public class NewsServiceTests {
 		boolean contains = false;
 		
 		for(News news : recentNews)
-			if(news.getNewsID().equals(id))
+			if(news.getNewsID() == id)
 				contains = true;
 		
 		assertTrue("Users can't load recent news.", contains);
 		
 		// Checking news parameters for recent news
 		for(News news : recentNews)
-			if(news.getNewsID().equals(id))
+			if(news.getNewsID() == id)
 			{
 				String title = news.getTitle();
 				String content = news.getContent();
@@ -198,7 +198,7 @@ public class NewsServiceTests {
 		News n = newsService.createNews("test", "test", admin);
 		toDelete.add(n);
 		// Get id
-		Integer id = n.getNewsID();
+		int id = n.getNewsID();
 		// Remove news
 		newsService.removeBy(id, admin);
 		

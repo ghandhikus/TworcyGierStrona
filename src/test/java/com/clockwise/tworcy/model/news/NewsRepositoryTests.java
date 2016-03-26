@@ -15,11 +15,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.news.News;
-import com.clockwise.tworcy.model.news.NewsRepository;
-import com.clockwise.tworcy.model.news.NewsRepositoryCachedDB;
+import com.clockwise.tworcy.model.news.NewsDAO;
+import com.clockwise.tworcy.model.news.NewsDAOHibernate;
 
 /**
- * Tests {@link NewsRepository}
+ * Tests {@link NewsDAO}
  * @author Daniel
  */
 @WebAppConfiguration // MVC
@@ -27,7 +27,7 @@ import com.clockwise.tworcy.model.news.NewsRepositoryCachedDB;
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/spring-dispatcher-servlet.xml"})
 public class NewsRepositoryTests {
 	// Services
-	@Autowired NewsRepository newsDB;
+	@Autowired NewsDAO newsDB;
 
 	// Cleanup
 	List<News> toDelete = new ArrayList<>();
@@ -71,7 +71,7 @@ public class NewsRepositoryTests {
 		toDelete.add(news);
 		
 		// If cached db updated news class then this shouldn't crash.
-		if(newsDB.getClass() == NewsRepositoryCachedDB.class)
+		if(newsDB.getClass() == NewsDAOHibernate.class)
 			Assert.assertTrue("Update Cache"+err, news.getTitle().equals("NewTitle"));
 		
 		// Get current version

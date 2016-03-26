@@ -13,7 +13,7 @@ import com.clockwise.tworcy.model.account.Account;
 
 public @Service class UserProfileServiceHibernate implements UserProfileService {
 
-	private @Autowired UserProfileRepository db;
+	private @Autowired UserProfileDAO db;
 
 	public @Override @Transactional void addUserProfile(Account by,
 			UserProfile userProfile) throws AccessControlException {
