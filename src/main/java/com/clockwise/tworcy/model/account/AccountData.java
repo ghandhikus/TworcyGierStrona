@@ -128,4 +128,23 @@ public class AccountData {
 	public void setLocked(boolean locked) {
 		this.locked = locked;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append(this.getClass().getSimpleName());
+		b.append(" { ");
+		b.append("username : ").append(username).append(", ");
+		b.append("password : ").append("[PROTECTED]").append(", ");
+		b.append("access : ").append(access).append(", ");
+		b.append("lastLogin : ").append(lastLogin).append(", ");
+		b.append("lastPasswordChange : ").append(lastPasswordChange).append(", ");
+		b.append("expireOn : ").append(expireOn).append(", ");
+		b.append("passwordExpireOn : ").append(passwordExpireOn).append(", ");
+		b.append("enabled : ").append(enabled).append(", ");
+		b.append("locked : ").append(locked);
+		b.append(" }");
+		
+		return b.toString();
+	}
 }

@@ -37,17 +37,23 @@ import com.mysql.jdbc.Messages;
 	/** Logging library instance for this class */
 	private static final Logger logger = Logger.getLogger(GameRepositoryHibernate.class);
 
-	// Holds column names inside the News table.
+	// Holds column names inside of table.
 	private String gameTableFieldId;
 	private String gameTableFieldAuthorId;
 	private String gameTableFieldDateAdded;
 	private String gameTableFieldDateUpdated;
 	
+	/**
+	 * Checks for nulls inside the game model.
+	 * @param game
+	 */
 	public void checkNulls(Game game) {
 		if(game == null) throw new NullPointerException(Messages.getString("Game.notSet"));
-		if(game.getAuthorId() == 0)  throw new NullPointerException(Messages.getString("Game.notSetAcc"));
-		if(game.getTitle() == null || game.getTitle().trim().length()==0)  throw new NullPointerException(Messages.getString("Game.notSetTitle"));
-		if(game.getDescription() == null || game.getDescription().trim().length()==0)  throw new NullPointerException(Messages.getString("Game.notSetDesc"));
+		if(game.getAuthorId() == 0)  throw new IllegalArgumentException(Messages.getString("Game.notSetAcc"));
+		if(game.getTitle() == null)  throw new NullPointerException(Messages.getString("Game.notSetTitle"));
+		else if(game.getTitle().trim().length()==0)  throw new IllegalArgumentException(Messages.getString("Game.notSetTitle"));
+		if(game.getDescription() == null)  throw new NullPointerException(Messages.getString("Game.notSetDesc"));
+		else if(game.getDescription().trim().length()==0)  throw new IllegalArgumentException(Messages.getString("Game.notSetDesc"));
 	}
 	
 	/**
@@ -70,30 +76,33 @@ import com.mysql.jdbc.Messages;
 			throw e;
 		}
 	}
+	
 	@Override
 	public Game insert(Game game) {
+		// Makes sure that parameters are correct
 		checkNulls(game);
-
-		// Set initial dates
-		game.setDateAdded(DateTime.now());
-		game.setDateUpdated(null);
 		
 		// Start transaction
 		Transaction tran = getSession().getTransaction();
 		tran.begin();
+		
 		// Persist game data
 		GameData data = convert.toData(game);
 		getSession().persist(data);
+		
 		// Commit operation
 		tran.commit();
+		
 		// Set the game
 		convert.toGame(data, game);
 
+		// Return
 		return game;
 	}
 
 	@Override
 	public Game update(Game game) {
+		// Makes sure that parameters are correct
 		checkNulls(game);
 		if(game.getGameId() <= 0) 
 			throw new NullPointerException(Messages.getString("Game.notSetId"));
@@ -118,19 +127,23 @@ import com.mysql.jdbc.Messages;
 
 	@Override
 	public void archive(Game game) {
-		// Checking parameters
+		// Makes sure that parameters are correct
 		checkNulls(game);
 		
+		// Begins hibernate transaction
 		Transaction transaction = getSession().getTransaction();
 		transaction.begin();
 		try {
-			// Get the most recent
+			// Get the most recent data from repository
 			GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, game.getGameId())).uniqueResult();
 			
+			// Convert the data to archive
 			GameArchiveData archive = convert.toArchive(data);
 			
+			// Archive the data
 			getSession().persist(archive);
 			
+			// Apply changes to the database
 			transaction.commit();
 		} catch(Exception e) {
 			// Rollback on error
@@ -140,24 +153,52 @@ import com.mysql.jdbc.Messages;
 	}
 
 	public @Override int getCount() {
-		return ((Number)getSession().createCriteria(GameData.class).setProjection(Projections.rowCount()).uniqueResult()).intValue();
+		// Create criteria
+		Criteria criteria = getSession().createCriteria(GameData.class);
+		// Set expected return
+		criteria.setProjection(Projections.rowCount());
+		// Catch the return value
+		Number result = (Number) criteria.uniqueResult();
+		// Return the truncated value
+		return result.intValue();
+	}
+	public @Override int getUserGameCount(Integer authorId) {
+		if (authorId == null || authorId == 0) {
+			logger.error("authorId is either null or 0. authorId = "+authorId);
+			if (authorId == 0)
+				throw new IllegalArgumentException("authorId = "+authorId+". Expected  not (null or 0)");
+			else if(authorId == null)
+				throw new NullPointerException("authorId is null");
+		}
+		// Create criteria
+		Criteria criteria = getSession().createCriteria(GameData.class);
+		// Set expected return
+		criteria.setProjection(Projections.rowCount());
+		// Limit the counting to single author only
+		criteria.add(Restrictions.eq(gameTableFieldAuthorId, authorId));
+		// Catch the return value
+		Number result = (Number)criteria.uniqueResult();
+		// Return the truncated value
+		return result.intValue();
 	}
 
 	public @Override Game getSpecific(Integer gameId) {
+		// Makes sure that parameters are correct
 		if (gameId == null) return null;
-		
+		// Catch the data
 		GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, gameId)).uniqueResult();
-		
+		// Convert the data to the game
 		return convert.toGame(data);
 	}
 
-	@Override
-	public List<Game> getUserGames(Integer authorId, Integer count, Integer offset) {
+	public @Override List<Game> getUserGames(Integer authorId, Integer count, Integer offset) {
+		// Makes sure that parameters are correct
 		if (authorId == null || authorId == 0) return null;
 		if (count == null) count = 1;
 		if (offset == null) offset = 0;
 		if (count > 1000) count = 1000;
 
+		// Catches newsCount to determine if it's even possible to catch so many results
 		int newsCount = getCount();
 		// Make sure that offset won't be higher than newsCount
 		if (offset > newsCount) offset = newsCount - 1;
@@ -189,6 +230,7 @@ import com.mysql.jdbc.Messages;
 
 	@Override
 	public List<Game> getRecent(Integer count, Integer offset) {
+		// Makes sure that parameters are correct
 		if (count == null) count = 10;
 		if (offset == null) offset = 0;
 		if (count > 1000) count = 1000;

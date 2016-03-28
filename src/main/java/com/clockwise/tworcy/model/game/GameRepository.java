@@ -10,8 +10,10 @@ import org.springframework.stereotype.Repository;
 	public void delete(Game game);
 	public void archive(Game game);
 
-	/** @return number of records in `games` table */
+	/** @return number of games in the database */
 	public int getCount();
+	/** @return number of games in the database by the given user */
+	public int getUserGameCount(Integer authorId);
 	
 	/** Catches the game by specified id. */
 	public Game getSpecific(Integer gameId);

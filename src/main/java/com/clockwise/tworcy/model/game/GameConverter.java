@@ -1,13 +1,14 @@
 package com.clockwise.tworcy.model.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.clockwise.tworcy.util.JSONUtils;
 
-@Service class GameConverter {
+@Component class GameConverter {
 
 	private @Autowired JSONUtils json;
+	
 	GameData toData(Game game) {
 		GameData data = new GameData();
 		data.setGameId(game.getGameId());

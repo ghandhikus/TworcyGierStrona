@@ -17,15 +17,16 @@ public @Service("gameService") class GameServiceHibernate implements GameService
 	private @Autowired GameRepository db;
 	private @Autowired AccountPermissions permissions;
 
-	private void prepare(Game game, Account account) {
+	private void prepareForAdding(Game game, Account account) {
 		game.setDateAdded(DateTime.now());
+		game.setDateUpdated(null);
 		game.setAuthorId(account.getId());
 	}
 	
 	public @Override Game addGame(Game game, Account account) throws AccessControlException, ParameterTooLongException {
 		permissions.checkParameters(game, account);
 		permissions.checkAddingGame(game, account);
-		prepare(game, account);
+		prepareForAdding(game, account);
 		
 		return db.insert(game);
 	}

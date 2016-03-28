@@ -1,9 +1,5 @@
 package com.clockwise.tworcy.model.account;
 
-import static org.springframework.util.Assert.notNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.Table;
@@ -13,27 +9,22 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.clockwise.tworcy.model.account.authorizations.AdminRole;
-import com.clockwise.tworcy.model.account.authorizations.HeadAdminRole;
-import com.clockwise.tworcy.model.account.authorizations.ModeratorRole;
-import com.clockwise.tworcy.model.account.authorizations.NormalRole;
-
 public @Transactional @Repository class AccountDAOHibernate implements AccountDAO {
-	// Hibernate sessions
+	/** Hibernate sessions */
 	private @Autowired SessionFactory sessionFactory;
+	private @Autowired AccountConverter convert;
 	/** Annotated table in {@link AccountData} */
-	private static String accountDataTable;
+	private String accountDataTable;
 	/** Statement for get() */
-	private static String getStatement;
+	private String getStatement;
 	/** Statement for get(Username) */
-	private static String getByUsernameStatement;
+	private String getByUsernameStatement;
 	
 	/** Catches table of AccountData */
-	static {
+	{
 		accountDataTable = AccountData.class.getDeclaredAnnotation(Table.class).name();
 		getStatement = "from "+accountDataTable;
 		getByUsernameStatement = getStatement + " where username=:username";
@@ -47,8 +38,8 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 	
 	public @Override Account create(String username, String password) {
 		// Check method params
-		notNull(username);
-		notNull(password);
+		if(username == null || username.equals("")) return null;
+		if(password == null || password.equals("")) return null;
 		
 		// Create data object
 		AccountData data = new AccountData();
@@ -61,79 +52,22 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 		// Insert to db
 		getSession().persist(data);
 		
+		logger.debug("Create account : "+data.toString());
+		
 		// Catch the data from db
 		return get(username);
 	}
 
 	public @Override Account get(Integer id) {
 		// Check method params
-		notNull(id);
+		if(id == null || id == 0) return null;
 
 		// Catch the data and convert it to the account
 		AccountData data = (AccountData) getSession().load(AccountData.class, id);
-		return convert(data);
+		logger.debug("Get account by id : "+data.toString());
+		return convert.convert(data);
 	}
 
-	/**
-	 * Converts the list of {@link AccountData} to {@link Account Accounts}
-	 * @param data list which contains {@link AccountData}
-	 * @return list containing converted {@link Account Accounts}
-	 */
-	private List<Account> convert(List<AccountData> data) {
-		// Holding array
-		ArrayList<Account> accounts = new ArrayList<>(data.size());
-		// Converting loop
-		for(int i=0;i<data.size();i++)
-			accounts.set(i, convert(data.get(i)));
-		// Return
-		return accounts;
-	}
-	
-	/**
-	 * Converts {@link AccountData} to {@link Account}
-	 * @param data object containing raw information about the {@link Account}
-	 * @return converted {@link Account}
-	 */
-	private Account convert(AccountData data) {
-		// Param checks
-		notNull(data);
-		
-		// Converting Access to Spring.Security RememberMe format
-		Collection<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
-		byte access = data.getAccess();
-		if(access >= Access.NORMAL.getAccess()) auth.add(new NormalRole());
-		if(access >= Access.MODERATOR.getAccess()) auth.add(new ModeratorRole());
-		if(access >= Access.ADMIN.getAccess()) auth.add(new AdminRole());
-		if(access >= Access.HEADADMIN.getAccess()) auth.add(new HeadAdminRole());
-		
-		// Return of created account object
-		return new Account(data.getId(), data.getUsername(), data.getPassword(), data.getLastLogin(), data.getLastPasswordChange(), data.getExpireOn(), data.getPasswordExpireOn(), data.isEnabled(), data.isLocked(), auth);
-	}
-	
-	/**
-	 * Converts {@link Account} back to raw {@link AccountData}
-	 * @param acc {@link Account}
-	 * @return converted {@link AccountData}
-	 */
-	private AccountData convertBack(Account acc) {
-		// Raw data object
-		AccountData data = new AccountData();
-		
-		// Populating data
-		data.setId(acc.getId());
-		data.setUsername(acc.getName());
-		data.setPassword(acc.getPassword());
-		data.setAccess(acc.getAccessLevel().getAccess());
-		data.setLastLogin(acc.getLastLogin());
-		data.setLastPasswordChange(acc.getLastPasswordChange());
-		data.setExpireOn(acc.getExpireOn());
-		data.setPasswordExpireOn(acc.getPasswordExpireOn());
-		data.setEnabled(acc.isEnabled());
-		data.setLocked(!acc.isAccountNonLocked());
-		
-		// Return
-		return data;
-	}
 	
 	public @Override Account get(String username) {
 		// Param checks
@@ -145,7 +79,8 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 		query.setParameter("username", username);
 		
 		AccountData data = (AccountData) query.uniqueResult();
-		return convert(data);
+		logger.debug("Get account by username : "+data.toString());
+		return convert.convert(data);
 	}
 
 	@Override
@@ -160,8 +95,15 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
         
 		@SuppressWarnings("unchecked")
 		List<AccountData> accounts = (List<AccountData>) query.list();
+		
+		// Debug loop
+        if(logger.isDebugEnabled())
+        	for(int i=0;i<accounts.size();i++)
+        		if(accounts.get(i) != null)
+        			logger.debug("Get list["+i+"] : "+accounts.get(i).toString());
         
-        return convert(accounts);
+        // Return converted list of accounts
+        return convert.convert(accounts);
 	}
 
 	@Override
@@ -169,14 +111,14 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 		if(id == null) return;
 		getSession().delete(get(id));
 		// Debug
-		logger.debug("Removed Record from Players where id = " + id);
+		logger.debug("Delete id = " + id);
 	}
 
 	@Override
 	public void update(Account account) {
-		AccountData data = convertBack(account);
+		AccountData data = convert.convertBack(account);
 		getSession().update(data);
 		// Debug
-		logger.debug("Updated Record with id = " + account.getId());
+		logger.debug("Update account = " + data.toString());
 	}
 }
