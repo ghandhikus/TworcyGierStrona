@@ -23,7 +23,7 @@ import com.clockwise.tworcy.model.account.AccountService;
 import com.clockwise.tworcy.util.JSONUtils;
 import com.mysql.jdbc.Messages;
 
-@Transactional @Repository class GameRepositoryJDBC implements GameRepository {
+@Transactional @Repository class GameRepositoryHibernate implements GameRepository {
 	// Hibernate sessions
 	private @Autowired SessionFactory sessionFactory;
 	private @Autowired AccountService accounts;
@@ -35,7 +35,7 @@ import com.mysql.jdbc.Messages;
 	private Session getSession() { return sessionFactory.getCurrentSession(); }
 	
 	/** Logging library instance for this class */
-	private static final Logger logger = Logger.getLogger(GameRepositoryJDBC.class);
+	private static final Logger logger = Logger.getLogger(GameRepositoryHibernate.class);
 
 	// Holds column names inside the News table.
 	private String gameTableFieldId;
@@ -54,7 +54,7 @@ import com.mysql.jdbc.Messages;
 	 * Populates internal strings for column names.
 	 * @throws Exception occurs when reflection fails to detect column names from News using the {@link Column} annotation
 	 */
-	public GameRepositoryJDBC() throws Exception {
+	public GameRepositoryHibernate() throws Exception {
 		try {
 			gameTableFieldId = GameData.class.getDeclaredField("gameId").getName();
 			gameTableFieldAuthorId = GameData.class.getDeclaredField("authorId").getName();

@@ -12,7 +12,7 @@ import com.clockwise.tworcy.model.account.Account;
 import com.clockwise.tworcy.util.AccountPermissions;
 import com.clockwise.tworcy.util.Messages;
 
-public @Service("gameService") class GameServiceJDBC implements GameService {
+public @Service("gameService") class GameServiceHibernate implements GameService {
 
 	private @Autowired GameRepository db;
 	private @Autowired AccountPermissions permissions;
