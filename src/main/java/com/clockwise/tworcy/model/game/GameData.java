@@ -1,7 +1,13 @@
 package com.clockwise.tworcy.model.game;
 
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 /**
@@ -9,13 +15,33 @@ import org.joda.time.DateTime;
  * @author Daniel
  *
  */
-public class Game {
+@Entity
+@Table(name = "GameData")
+public class GameData {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "gameId", nullable = false)
 	private int gameId;
+	
+	@Column(name = "authorId", nullable = false)
 	private int authorId;
-	private List<String> media;
+	
+	@Column(name = "media", nullable = true)
+	private String media;
+	
+	@Column(name = "title", nullable = false)
 	private String title;
+	
+	@Column(name = "description", nullable = false)
 	private String description;
+	
+	@Column(name = "dateAdded", nullable = false)
+	@Type(type="org.jadira.usertype.dateandtime.joda.PersistentDateTime")
 	private DateTime dateAdded;
+	
+	@Column(name = "dateUpdated", nullable = true)
+	@Type(type="org.jadira.usertype.dateandtime.joda.PersistentDateTime")
 	private DateTime dateUpdated;
 
 	public int getGameId() {
@@ -26,7 +52,7 @@ public class Game {
 		return authorId;
 	}
 
-	public List<String> getMedia() {
+	public String getMedia() {
 		return media;
 	}
 
@@ -55,7 +81,7 @@ public class Game {
 		this.authorId = authorId;
 	}
 
-	public void setMedia(List<String> media) {
+	public void setMedia(String media) {
 		this.media = media;
 	}
 	

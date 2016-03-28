@@ -34,7 +34,7 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 	
 	/** Catches table of AccountData */
 	static {
-		accountDataTable = AccountData.class.getAnnotation(Table.class).name();
+		accountDataTable = AccountData.class.getDeclaredAnnotation(Table.class).name();
 		getStatement = "from "+accountDataTable;
 		getByUsernameStatement = getStatement + " where username=:username";
 	}

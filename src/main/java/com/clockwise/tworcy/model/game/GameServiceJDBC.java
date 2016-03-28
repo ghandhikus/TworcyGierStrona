@@ -54,14 +54,6 @@ public @Service("gameService") class GameServiceJDBC implements GameService {
 		db.delete(game);
 	}
 
-	public @Override void removeBy(Integer gameId, Account account) throws AccessControlException {
-		if(gameId == null) throw new NullPointerException(Messages.getString("Game.notSetID"));
-		permissions.checkParameter(account);
-		permissions.checkRemovingGame(account);
-		
-		db.delete(gameId);
-	}
-
 	public @Override Integer getGameCount() {
 		return db.getCount();
 	}

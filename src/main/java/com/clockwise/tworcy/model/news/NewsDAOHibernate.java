@@ -154,7 +154,11 @@ import com.clockwise.tworcy.model.account.AccountService;
 			crit.setFirstResult(offset);
 			crit.addOrder(Order.desc(newsTableFieldDate));
 			crit.addOrder(Order.desc(newsTableFieldId));
-			return (List<News>) crit.list();
+			List<News> list = (List<News>) crit.list();
+			for(int i=0;i<list.size();i++) {
+				logger.debug("News recent["+i+"] = "+list.get(i).toString());
+			}
+			return list;
 		} catch ( HibernateException e ) {
 			logger.error(e.getMessage());
 			return null;

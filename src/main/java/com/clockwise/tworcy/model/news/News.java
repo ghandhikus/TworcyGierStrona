@@ -68,4 +68,19 @@ public class News implements Serializable {
 	void setContent(String content) {
 		this.content = content;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+
+		b.append("News {\n");
+		b.append("  newsId = ").append(newsId).append("\n");
+		b.append("  authorId = ").append(authorId).append("\n");
+		b.append("  date = ").append(date).append("\n");
+		b.append("  title = ").append(title.substring(0, Math.min(100,title.length()))).append("\n");
+		b.append("  content = ").append(content.substring(0, Math.min(100,content.length()))).append("\n");
+		b.append("}");
+		
+		return b.toString();
+	}
 }

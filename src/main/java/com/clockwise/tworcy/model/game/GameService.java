@@ -40,14 +40,6 @@ public @Service interface GameService {
 	 * @throws ParameterTooLongException if title or description is too long
 	 */
 	public void removeBy(Game game, Account account) throws AccessControlException, ParameterTooLongException;
-	
-	/**
-	 * Removes the game by this account.
-	 * @param gameId of game which are going to be removed.
-	 * @param account which removes the game.
-	 * @throws AccessControlException if account has no permission to remove game.
-	 */
-	public void removeBy(Integer gameId, Account account) throws AccessControlException;
 
 	/**
 	 * Catches the count of records from database. It is fast if cached version of repository will be used.

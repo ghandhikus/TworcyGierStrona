@@ -7,11 +7,6 @@
 			<a href="${nav.get('newNews')}" class="btn btn-default">Dodaj artykuł</a>
 			<br />
 		</c:if>
-		
-		<%-- Catching recent news if they were not set --%>
-		<c:if test="${newsList == null}">
-			<c:set var="newsList" value="${newsService.getRecentNews(10,0)}"/>
-		</c:if>
 
 		<%-- No News --%>
 		<c:if test="${newsList == null}">

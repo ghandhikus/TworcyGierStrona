@@ -8,11 +8,6 @@
 			<a href="${nav.get('newGame')}" class="btn btn-default">Dodaj grę</a>
 			<br />
 		</c:if>
-		
-		<%-- Catching recent if they were not set --%>
-		<c:if test="${gameList == null}">
-			<c:set var="gameList" value="${gameService.getRecentGames(10,0)}"/>
-		</c:if>
 
 		<%-- Nothing in list --%>
 		<c:if test="${gameList == null || gameList.size() == 0}">

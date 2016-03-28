@@ -1,41 +1,75 @@
 package com.clockwise.tworcy.model.game;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Column;
+
+import org.apache.log4j.Logger;
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.account.AccountService;
 import com.clockwise.tworcy.util.JSONUtils;
 import com.mysql.jdbc.Messages;
 
-@Repository class GameRepositoryJDBC implements GameRepository {
-	/** Database object, is automatically injected by Spring */
-	private @Autowired JdbcTemplate db;
+@Transactional @Repository class GameRepositoryJDBC implements GameRepository {
+	// Hibernate sessions
+	private @Autowired SessionFactory sessionFactory;
 	private @Autowired AccountService accounts;
+	private @Autowired GameConverter convert;
 	/** TODO: DOC */
 	private @Autowired JSONUtils json;
+
+	/** Quick hibernate session catcher */
+	private Session getSession() { return sessionFactory.getCurrentSession(); }
 	
-	/** KeyHolder to catch id from insert statements. */
-	private KeyHolder keyHolder = new GeneratedKeyHolder();
+	/** Logging library instance for this class */
+	private static final Logger logger = Logger.getLogger(GameRepositoryJDBC.class);
+
+	// Holds column names inside the News table.
+	private String gameTableFieldId;
+	private String gameTableFieldAuthorId;
+	private String gameTableFieldDateAdded;
+	private String gameTableFieldDateUpdated;
 	
 	public void checkNulls(Game game) {
 		if(game == null) throw new NullPointerException(Messages.getString("Game.notSet"));
-		if(game.getAuthorId() == null)  throw new NullPointerException(Messages.getString("Game.notSetAcc"));
+		if(game.getAuthorId() == 0)  throw new NullPointerException(Messages.getString("Game.notSetAcc"));
 		if(game.getTitle() == null || game.getTitle().trim().length()==0)  throw new NullPointerException(Messages.getString("Game.notSetTitle"));
 		if(game.getDescription() == null || game.getDescription().trim().length()==0)  throw new NullPointerException(Messages.getString("Game.notSetDesc"));
 	}
 	
+	/**
+	 * Populates internal strings for column names.
+	 * @throws Exception occurs when reflection fails to detect column names from News using the {@link Column} annotation
+	 */
+	public GameRepositoryJDBC() throws Exception {
+		try {
+			gameTableFieldId = GameData.class.getDeclaredField("gameId").getName();
+			gameTableFieldAuthorId = GameData.class.getDeclaredField("authorId").getName();
+			gameTableFieldDateAdded = GameData.class.getDeclaredField("dateAdded").getName();
+			gameTableFieldDateUpdated = GameData.class.getDeclaredField("dateUpdated").getName();
+
+			logger.debug("gameTableFieldId : "+gameTableFieldId);
+			logger.debug("gameTableFieldAuthorId : "+gameTableFieldAuthorId);
+			logger.debug("gameTableFieldDateAdded : "+gameTableFieldDateAdded);
+			logger.debug("gameTableFieldDateUpdated : "+gameTableFieldDateUpdated);
+		} catch (NoSuchFieldException | SecurityException e) {
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
 	@Override
 	public Game insert(Game game) {
 		checkNulls(game);
@@ -43,133 +77,114 @@ import com.mysql.jdbc.Messages;
 		// Set initial dates
 		game.setDateAdded(DateTime.now());
 		game.setDateUpdated(null);
-
-		// Insert statement for game
-		String sql = "INSERT INTO games (authorId, dateAdded, title, description, media) VALUES (?, ?, ?, ?, ?)";
-
-		// Convert game time to sql timestamp
-		Timestamp timeStamp = new Timestamp(game.getDateAdded().getMillis());
-
-		// Thread safety for keyholder
-		synchronized(keyHolder)
-		{
-			// Prepared statement for catching the id
-			db.update(new PreparedStatementCreator() {
-				public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-					PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
-					// game table values
-					// Ordered from 1!
-					ps.setInt(1, game.getAuthorId());
-					ps.setTimestamp(2, timeStamp);
-					ps.setString(3, game.getTitle());
-					ps.setString(4, game.getDescription());
-					ps.setString(5, json.stringArrayToJSON(game.getMedia()));
-
-					return ps;
-				}
-			}, keyHolder);
-	
-			// Get id from db
-			game.setGameId(((Long) keyHolder.getKey()).intValue());
-		}
 		
+		// Start transaction
+		Transaction tran = getSession().getTransaction();
+		tran.begin();
+		// Persist game data
+		GameData data = convert.toData(game);
+		getSession().persist(data);
+		// Commit operation
+		tran.commit();
+		// Set the game
+		convert.toGame(data, game);
+
 		return game;
 	}
 
 	@Override
 	public Game update(Game game) {
 		checkNulls(game);
-		
-		if(game.getDateAdded() == null) throw new NullPointerException(Messages.getString("Game.notSetDate"));
+		if(game.getGameId() <= 0) 
+			throw new NullPointerException(Messages.getString("Game.notSetId"));
+		if(game.getDateAdded() == null)
+			throw new NullPointerException(Messages.getString("Game.notSetDate"));
 		game.setDateUpdated(DateTime.now());
 		
-
-		// Joda date to sql timestamp
-		Timestamp timeStamp = new Timestamp(game.getDateUpdated().getMillis());
+		GameData data = convert.toData(game);
+		getSession().update(data);
 		
-		// Update the game
-		String sql = "UPDATE games SET authorId=?, dateUpdated=?, title=?, description=?, media=? WHERE id=? LIMIT 1";
-		//int rowsAffected = 
-		db.update(sql, game.getAuthorId(), timeStamp, game.getTitle(), game.getDescription(), json.stringArrayToJSON(game.getMedia()), game.getGameId());
-
 		return game;
 	}
 
 	public @Override void delete(Game game) {
 		if (game == null)
 			return;
-		if (game.getGameId() == null)
+		if (game.getGameId() <= 0)
 			return;
 
-		delete(game.getGameId());
-	}
-
-	public @Override void delete(Integer id) {
-		if (id == null)
-			return;
-		
-		// Remove from the database
-		String sql = "DELETE FROM games WHERE id = ? LIMIT 1";
-		db.update(sql, id);
+		getSession().delete(convert.toData(game));
 	}
 
 	@Override
 	public void archive(Game game) {
 		// Checking parameters
 		checkNulls(game);
-		archive(game.getGameId());
-	}
-
-	@Override
-	public void archive(Integer id) {
-		if(id == null) throw new NullPointerException(Messages.getString("Game.notSetID"));
 		
-		// Archive current news
-		String sql = "INSERT INTO games_archive(gameId, authorId, date, title, description, media)"+
-				"SELECT id as gameId, authorId, date, title, description, media FROM games WHERE id = ? LIMIT 1";
-		db.update(sql, id);
-	}
-
-	@Override
-	public int getCount() {
-		// Catch count of game.
-		String sql = "SELECT COUNT(*) FROM games";
+		Transaction transaction = getSession().getTransaction();
+		transaction.begin();
 		try {
-			return db.queryForObject(sql, Integer.class);
-		} catch (EmptyResultDataAccessException e) {
-			return 0;
+			// Get the most recent
+			GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, game.getGameId())).uniqueResult();
+			
+			GameArchiveData archive = convert.toArchive(data);
+			
+			getSession().persist(archive);
+			
+			transaction.commit();
+		} catch(Exception e) {
+			// Rollback on error
+			transaction.rollback();
+			throw e;
 		}
 	}
 
-	@Override
-	public Game getSpecific(Integer gameId) {
-		if (gameId == null)
-			return null;
+	public @Override int getCount() {
+		return ((Number)getSession().createCriteria(GameData.class).setProjection(Projections.rowCount()).uniqueResult()).intValue();
+	}
 
-		// Try to catch the specific or return null.
-		try {
-			String sql = "SELECT * FROM games WHERE id = ? ORDER BY dateUpdated, dateAdded DESC LIMIT 1";
-			return db.queryForObject(sql, new Object[] { gameId }, new GameRepositoryJDBCMapper());
-		} catch (EmptyResultDataAccessException e) {
-			return null;
-		}
+	public @Override Game getSpecific(Integer gameId) {
+		if (gameId == null) return null;
+		
+		GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, gameId)).uniqueResult();
+		
+		return convert.toGame(data);
 	}
 
 	@Override
-	public List<Game> getUserGames(Integer accountID, Integer count, Integer offset) {
-		if (accountID == null) return null;
+	public List<Game> getUserGames(Integer authorId, Integer count, Integer offset) {
+		if (authorId == null || authorId == 0) return null;
 		if (count == null) count = 1;
 		if (offset == null) offset = 0;
 		if (count > 1000) count = 1000;
 
-		String sql = "SELECT * FROM games WHERE authorId = ? ORDER BY dateUpdated, dateAdded DESC LIMIT ? OFFSET ?";
+		int newsCount = getCount();
+		// Make sure that offset won't be higher than newsCount
+		if (offset > newsCount) offset = newsCount - 1;
+		// There is no news in db so no need to get anything
+		if (newsCount == 0) return null;
 
-		List<Game> ret = (List<Game>) db.query(sql, new GameRepositoryJDBCMapper(), new Object[]{accountID,count,offset});
-		
-		if(ret.size()==0)
+		try {
+			Criteria crit = getSession().createCriteria(GameData.class);
+			crit.setMaxResults(count);
+			crit.setFirstResult(offset);
+			crit.add(Restrictions.eq(gameTableFieldAuthorId, authorId));
+			crit.addOrder(Order.desc(gameTableFieldDateUpdated));
+			crit.addOrder(Order.desc(gameTableFieldDateAdded));
+			crit.addOrder(Order.desc(gameTableFieldId));
+			
+			// Conversion
+			@SuppressWarnings("unchecked")
+			List<GameData> dataList = (List<GameData>) crit.list();
+			List<Game> gameList = new ArrayList<Game>(dataList.size());
+			for(GameData data : dataList)
+				gameList.add(convert.toGame(data));
+			
+			return gameList;
+		} catch ( HibernateException e ) {
+			logger.error(e.getMessage());
 			return null;
-		else
-			return ret;
+		}
 	}
 
 	@Override
@@ -177,16 +192,34 @@ import com.mysql.jdbc.Messages;
 		if (count == null) count = 10;
 		if (offset == null) offset = 0;
 		if (count > 1000) count = 1000;
+
+		int gameCount = getCount();
+		// Make sure that offset won't be higher than newsCount
+		if (offset > gameCount) offset = gameCount - 1;
+		// There is no news in db so no need to get anything
+		if (gameCount == 0) return null;
+
 		
-		// Get games
-		String sql = "SELECT * FROM games ORDER BY dateUpdated, dateAdded DESC LIMIT ? OFFSET ?";
-		List<Game> ret = (List<Game>) db.query(sql, new GameRepositoryJDBCMapper(),
-				new Object[]{count, offset});
-		
-		if(ret.size()==0)
+		try {
+			Criteria crit = getSession().createCriteria(GameData.class);
+			crit.setMaxResults(count);
+			crit.setFirstResult(offset);
+			crit.addOrder(Order.desc(gameTableFieldDateUpdated));
+			crit.addOrder(Order.desc(gameTableFieldDateAdded));
+			crit.addOrder(Order.desc(gameTableFieldId));
+
+			// Conversion
+			@SuppressWarnings("unchecked")
+			List<GameData> dataList = (List<GameData>) crit.list();
+			List<Game> gameList = new ArrayList<Game>(dataList.size());
+			for (GameData data : dataList)
+				gameList.add(convert.toGame(data));
+			
+			return gameList;
+		} catch ( HibernateException e ) {
+			logger.error(e.getMessage());
 			return null;
-		else
-			return ret;
+		}
 	}
 
 	@Override

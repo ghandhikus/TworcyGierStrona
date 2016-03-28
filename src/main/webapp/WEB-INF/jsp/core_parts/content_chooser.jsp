@@ -45,7 +45,7 @@
 		<jsp:include page="content/news/news_new.jsp" />
     </c:when>
 	<%-- List --%>
-    <c:when test="${nav.onPage(currentPage, 'listNews') || newsList!=null}">
+    <c:when test="${nav.onPage(currentPage, 'listNews') || (newsList!=null && gameList==null)}">
 		<jsp:include page="content/news/news_list.jsp" />
     </c:when>
     
@@ -63,7 +63,7 @@
 		<jsp:include page="content/game/game_new.jsp" />
     </c:when>
 	<%-- List --%>
-    <c:when test="${nav.onPage(currentPage, 'listGames') || gameList!=null}">
+    <c:when test="${nav.onPage(currentPage, 'listGames') || (newsList==null && gameList!=null)}">
 		<jsp:include page="content/game/game_list.jsp" />
     </c:when>
 
@@ -79,4 +79,3 @@
 		<jsp:include page="content/main_page.jsp" />
 	</c:otherwise>
 </c:choose>
-

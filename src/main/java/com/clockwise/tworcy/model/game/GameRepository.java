@@ -8,9 +8,7 @@ import org.springframework.stereotype.Repository;
 	public Game insert(Game game);
 	public Game update(Game game);
 	public void delete(Game game);
-	public void delete(Integer gameId);
 	public void archive(Game game);
-	public void archive(Integer gameId);
 
 	/** @return number of records in `games` table */
 	public int getCount();
