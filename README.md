@@ -1,7 +1,7 @@
 # Website Twórcy Gier
 
 ## Project structure
-[Source](src) - All project files, excluding maven and git configuration.
+* [Source](src) - All project files, excluding maven and git configuration.
  * [Tests](src/test) - Test module, which contains all test-only files.
  * [Main](src/main) - Contains project files.
    * [Resources](src/main/resources) - Stores property files, language files, and minor settings.
