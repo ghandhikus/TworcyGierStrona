@@ -8,10 +8,10 @@ import org.springframework.security.core.userdetails.User;
 
 public class Account extends User {
 
-	public Account(Integer id, String username, String password, DateTime lastLogin, DateTime lastPasswordChange, DateTime expireOn, DateTime passwordExpireOn,
+	public Account(int id, String username, String password, DateTime lastLogin, DateTime lastPasswordChange, DateTime expireOn, DateTime passwordExpireOn,
 			boolean enabled,
 			boolean accountLocked,
-			Collection<? extends GrantedAuthority> authorities)
+			Collection<? extends GrantedAuthority> authorities, Access access)
 	{
 		// Call the super
 		super(username, password, enabled,
@@ -26,12 +26,13 @@ public class Account extends User {
 		this.lastPasswordChange = lastPasswordChange;
 		this.expireOn = expireOn;
 		this.passwordExpireOn = passwordExpireOn;
+		this.accessLevel = access;
 	}
 
 	private static final long serialVersionUID = 4590436604483525434L;
 
-	private final Integer id;
-	private Access accessLevel = Access.NORMAL;
+	private final int id;
+	private final Access accessLevel;
 	private final DateTime lastLogin;
 	private final DateTime lastPasswordChange;
 	private final DateTime expireOn;
@@ -45,7 +46,7 @@ public class Account extends User {
 		return (name.length() >= 6 && name.length() <= 16);
 	}
 
-	public Integer getId() {
+	public int getId() {
 		return id;
 	}
 

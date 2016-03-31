@@ -2,32 +2,34 @@ package com.clockwise.tworcy.model.account;
 
 import java.util.List;
 
-import javax.persistence.Table;
-
 import org.apache.log4j.Logger;
-import org.hibernate.Query;
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-public @Transactional @Repository class AccountDAOHibernate implements AccountDAO {
+import com.clockwise.tworcy.model.news.News;
+
+@Repository class AccountDAOHibernate implements AccountDAO {
 	/** Hibernate sessions */
 	private @Autowired SessionFactory sessionFactory;
 	private @Autowired AccountConverter convert;
 	/** Annotated table in {@link AccountData} */
-	private String accountDataTable;
-	/** Statement for get() */
-	private String getStatement;
-	/** Statement for get(Username) */
-	private String getByUsernameStatement;
+	private final String accountTableFieldUsername;
+	private final String accountTableFieldId;
 	
-	/** Catches table of AccountData */
-	{
-		accountDataTable = AccountData.class.getDeclaredAnnotation(Table.class).name();
-		getStatement = "from "+accountDataTable;
-		getByUsernameStatement = getStatement + " where username=:username";
+	
+	/** Catches table of AccountData 
+	 * @throws SecurityException 
+	 * @throws NoSuchFieldException
+	 */
+	public AccountDAOHibernate() throws NoSuchFieldException, SecurityException {
+		accountTableFieldId = AccountData.class.getDeclaredField("id").getName();
+		accountTableFieldUsername = AccountData.class.getDeclaredField("username").getName();
 	}
 	
 	/** Quick hibernate session catcher */
@@ -50,22 +52,36 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 		data.setLocked(false);
 		
 		// Insert to db
-		getSession().persist(data);
+		getSession().save(data);
 		
 		logger.debug("Create account : "+data.toString());
 		
-		// Catch the data from db
-		return get(username);
+		return convert.convert(data);
 	}
 
 	public @Override Account get(Integer id) {
 		// Check method params
 		if(id == null || id == 0) return null;
 
-		// Catch the data and convert it to the account
-		AccountData data = (AccountData) getSession().load(AccountData.class, id);
-		logger.debug("Get account by id : "+data.toString());
-		return convert.convert(data);
+		return convert.convert(getData(id));
+	}
+	
+	public AccountData getData(Integer id) {
+
+		try {
+			Criteria criteria = getSession().createCriteria(AccountData.class).add(Restrictions.eq(accountTableFieldId, id));
+
+			Object obj = criteria.uniqueResult();
+			if(obj == null)
+				return null;
+			else {
+				AccountData data = (AccountData) obj;
+				return data;
+			}
+		} catch(HibernateException e) {
+			logger.warn(e);
+			return null;
+		}
 	}
 
 	
@@ -74,49 +90,66 @@ public @Transactional @Repository class AccountDAOHibernate implements AccountDA
 		if(username == null) return null;
 		if(username.length()==0) return null;
 		
-		// Statement for 
-		Query query = getSession().createQuery(getByUsernameStatement);
-		query.setParameter("username", username);
-		
-		AccountData data = (AccountData) query.uniqueResult();
-		logger.debug("Get account by username : "+data.toString());
-		return convert.convert(data);
+		Criteria criteria = getSession().createCriteria(AccountData.class).add(Restrictions.eq(accountTableFieldUsername, username));
+
+		try {
+			Object obj = criteria.uniqueResult();
+			if(obj == null)
+				return null;
+			else {
+				AccountData data = (AccountData) obj;
+				logger.debug("Get account by username : "+data.toString());
+				return convert.convert(data);
+			}
+			} catch(HibernateException e) {
+				logger.warn(e);
+				return null;
+			}
 	}
 
 	@Override
 	public List<Account> getList(Integer count, Integer offset) {
-		
 		if(count == null || count == 0) count = 10;
 		if(offset == null) offset = 0;
 
-        Query query = getSession().createQuery(getStatement)
-        		.setFirstResult(offset)
-        		.setMaxResults(count);
-        
-		@SuppressWarnings("unchecked")
-		List<AccountData> accounts = (List<AccountData>) query.list();
-		
-		// Debug loop
-        if(logger.isDebugEnabled())
-        	for(int i=0;i<accounts.size();i++)
-        		if(accounts.get(i) != null)
-        			logger.debug("Get list["+i+"] : "+accounts.get(i).toString());
-        
-        // Return converted list of accounts
-        return convert.convert(accounts);
+		try {
+			Criteria crit = getSession().createCriteria(News.class);
+			crit.setMaxResults(count);
+			crit.setFirstResult(offset);
+			crit.addOrder(Order.desc(this.accountTableFieldId));
+	        
+			@SuppressWarnings("unchecked")
+			List<AccountData> accounts = (List<AccountData>) crit.list();
+			
+			// Debug loop
+	        if(logger.isDebugEnabled())
+	        	for(int i=0;i<accounts.size();i++)
+	        		if(accounts.get(i) != null)
+	        			logger.debug("Get list["+i+"] : "+accounts.get(i).toString());
+	        
+	        // Return converted list of accounts
+	        return convert.convert(accounts);
+		} catch ( HibernateException e ) {
+			logger.error(e.getMessage());
+			return null;
+		}
 	}
 
 	@Override
 	public void delete(Integer id) {
 		if(id == null) return;
-		getSession().delete(get(id));
+		getSession().delete(getData(id));
 		// Debug
 		logger.debug("Delete id = " + id);
 	}
 
 	@Override
 	public void update(Account account) {
-		AccountData data = convert.convertBack(account);
+		// Get current object
+		AccountData data = getData(account.getId());
+		// Update data
+		convert.convertBack(account, data);
+		// Update database
 		getSession().update(data);
 		// Debug
 		logger.debug("Update account = " + data.toString());

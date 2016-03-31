@@ -22,10 +22,14 @@ public @Component("json") class JSONUtils {
 	}
 	
 	public String[] stringArrayFromJSON(String json) {
+		if(json == null)
+			return null;
 		return gson.fromJson(json, String[].class);
 	}
 
 	public List<String> stringListFromJSON(String json) {
+		if(json == null)
+			return null;
 		String[] arr = stringArrayFromJSON(json);
 		List<String> list = new ArrayList<String>();
 		for(String str : arr) list.add(str);

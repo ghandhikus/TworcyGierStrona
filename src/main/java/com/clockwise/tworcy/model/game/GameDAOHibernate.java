@@ -10,20 +10,18 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.account.AccountService;
 import com.clockwise.tworcy.util.JSONUtils;
 import com.mysql.jdbc.Messages;
 
-@Transactional @Repository class GameRepositoryHibernate implements GameRepository {
+@Repository class GameDAOHibernate implements GameDAO {
 	// Hibernate sessions
 	private @Autowired SessionFactory sessionFactory;
 	private @Autowired AccountService accounts;
@@ -35,7 +33,7 @@ import com.mysql.jdbc.Messages;
 	private Session getSession() { return sessionFactory.getCurrentSession(); }
 	
 	/** Logging library instance for this class */
-	private static final Logger logger = Logger.getLogger(GameRepositoryHibernate.class);
+	private static final Logger logger = Logger.getLogger(GameDAOHibernate.class);
 
 	// Holds column names inside of table.
 	private String gameTableFieldId;
@@ -54,13 +52,14 @@ import com.mysql.jdbc.Messages;
 		else if(game.getTitle().trim().length()==0)  throw new IllegalArgumentException(Messages.getString("Game.notSetTitle"));
 		if(game.getDescription() == null)  throw new NullPointerException(Messages.getString("Game.notSetDesc"));
 		else if(game.getDescription().trim().length()==0)  throw new IllegalArgumentException(Messages.getString("Game.notSetDesc"));
+		if(game.getDateAdded() == null) throw new NullPointerException(Messages.getString("game.notSetDate"));
 	}
 	
 	/**
 	 * Populates internal strings for column names.
 	 * @throws Exception occurs when reflection fails to detect column names from News using the {@link Column} annotation
 	 */
-	public GameRepositoryHibernate() throws Exception {
+	public GameDAOHibernate() throws Exception {
 		try {
 			gameTableFieldId = GameData.class.getDeclaredField("gameId").getName();
 			gameTableFieldAuthorId = GameData.class.getDeclaredField("authorId").getName();
@@ -82,16 +81,9 @@ import com.mysql.jdbc.Messages;
 		// Makes sure that parameters are correct
 		checkNulls(game);
 		
-		// Start transaction
-		Transaction tran = getSession().getTransaction();
-		tran.begin();
-		
 		// Persist game data
 		GameData data = convert.toData(game);
 		getSession().persist(data);
-		
-		// Commit operation
-		tran.commit();
 		
 		// Set the game
 		convert.toGame(data, game);
@@ -110,7 +102,11 @@ import com.mysql.jdbc.Messages;
 			throw new NullPointerException(Messages.getString("Game.notSetDate"));
 		game.setDateUpdated(DateTime.now());
 		
-		GameData data = convert.toData(game);
+		// Catch the object from db
+		GameData data = getSpecificData(game.getGameId());
+		// Update values
+		convert.toData(game, data);
+		// Update database
 		getSession().update(data);
 		
 		return game;
@@ -122,7 +118,7 @@ import com.mysql.jdbc.Messages;
 		if (game.getGameId() <= 0)
 			return;
 
-		getSession().delete(convert.toData(game));
+		getSession().delete(getSpecificData(game.getGameId()));
 	}
 
 	@Override
@@ -130,9 +126,6 @@ import com.mysql.jdbc.Messages;
 		// Makes sure that parameters are correct
 		checkNulls(game);
 		
-		// Begins hibernate transaction
-		Transaction transaction = getSession().getTransaction();
-		transaction.begin();
 		try {
 			// Get the most recent data from repository
 			GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, game.getGameId())).uniqueResult();
@@ -142,12 +135,9 @@ import com.mysql.jdbc.Messages;
 			
 			// Archive the data
 			getSession().persist(archive);
-			
-			// Apply changes to the database
-			transaction.commit();
 		} catch(Exception e) {
-			// Rollback on error
-			transaction.rollback();
+			logger.error(e.getMessage());
+			getSession().getTransaction().rollback();
 			throw e;
 		}
 	}
@@ -162,6 +152,7 @@ import com.mysql.jdbc.Messages;
 		// Return the truncated value
 		return result.intValue();
 	}
+	
 	public @Override int getUserGameCount(Integer authorId) {
 		if (authorId == null || authorId == 0) {
 			logger.error("authorId is either null or 0. authorId = "+authorId);
@@ -181,12 +172,20 @@ import com.mysql.jdbc.Messages;
 		// Return the truncated value
 		return result.intValue();
 	}
+	
+	public GameData getSpecificData(int gameId) {
+		return (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, gameId)).uniqueResult();
+	}
 
 	public @Override Game getSpecific(Integer gameId) {
 		// Makes sure that parameters are correct
 		if (gameId == null) return null;
 		// Catch the data
 		GameData data = (GameData) getSession().createCriteria(GameData.class).add(Restrictions.eq(gameTableFieldId, gameId)).uniqueResult();
+		
+		// Return checks
+		if(data == null) return null;
+		
 		// Convert the data to the game
 		return convert.toGame(data);
 	}

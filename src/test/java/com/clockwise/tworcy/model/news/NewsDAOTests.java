@@ -9,9 +9,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.news.News;
@@ -25,7 +27,8 @@ import com.clockwise.tworcy.model.news.NewsDAOHibernate;
 @WebAppConfiguration // MVC
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/spring-dispatcher-servlet.xml"})
-public class NewsRepositoryTests {
+@Transactional(propagation=Propagation.REQUIRED)
+public class NewsDAOTests {
 	// Services
 	@Autowired NewsDAO newsDB;
 
@@ -33,6 +36,7 @@ public class NewsRepositoryTests {
 	List<News> toDelete = new ArrayList<>();
 	
 	/** Removes all created news by this test. */
+	@Rollback(true)
 	public @After @Test void dispose() {
 		for(News news : toDelete)
 			try {
@@ -48,13 +52,14 @@ public class NewsRepositoryTests {
 	 * Checks if repository can handle common database operations
 	 * <a href="https://www.google.com/search?q=CRUD">(CRUD)</a>
 	 */
-	public @Transactional @Test void insertUpdateSelectDelete()
+	@Rollback(true)
+	public @Test void insertUpdateSelectDelete()
 	{
 		System.err.println("LAUNCHING SOMETHING ");
 		
 		String err = " is badly implemented for "+newsDB.getClass();
 		News news = new News();
-		news.setAuthorID(0);
+		news.setAuthorId(0);
 		news.setDate(DateTime.now());
 		news.setTitle("Title");
 		news.setContent("Content");
@@ -75,7 +80,7 @@ public class NewsRepositoryTests {
 			Assert.assertTrue("Update Cache"+err, news.getTitle().equals("NewTitle"));
 		
 		// Get current version
-		news = newsDB.getSpecific(news.getNewsID());
+		news = newsDB.getSpecific(news.getNewsId());
 		toDelete.add(news);
 		
 		Assert.assertNotNull(news);
@@ -83,11 +88,11 @@ public class NewsRepositoryTests {
 		// Current version should be modified
 		Assert.assertTrue("getSpecific"+err, news.getTitle().equals("NewTitle"));
 
-		Assert.assertNotNull(news.getNewsID());
+		Assert.assertNotNull(news.getNewsId());
 		newsDB.delete(news);
 		toDelete.add(news);
 		
-		news = newsDB.getSpecific(news.getNewsID());
+		news = newsDB.getSpecific(news.getNewsId());
 		toDelete.add(news);
 		
 		// Should be null now

@@ -39,6 +39,7 @@ public @Service("newsService") class NewsServiceHibernate implements NewsService
 		
 		return addNews(news, account);
 	}
+	
 	@Override
 	public News addNews(News news, Account account) throws AccessControlException, NullPointerException, ParameterTooLongException {
 		permissions.checkParameters(news, account);

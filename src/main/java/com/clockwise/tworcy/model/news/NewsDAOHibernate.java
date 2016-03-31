@@ -15,6 +15,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.account.AccountService;
@@ -30,7 +31,8 @@ import com.clockwise.tworcy.model.account.AccountService;
  * News parameters are not html escaped. It is just plain object for database operations.
  * @author Daniel
  */
-@Transactional @Repository class NewsDAOHibernate implements NewsDAO {
+@Transactional(propagation=Propagation.REQUIRED)
+@Repository class NewsDAOHibernate implements NewsDAO {
 	// Hibernate sessions
 	private @Autowired SessionFactory sessionFactory;
 	private @Autowired AccountService accounts;
@@ -72,10 +74,10 @@ import com.clockwise.tworcy.model.account.AccountService;
 		if (news.getTitle() == null) return null;
 		if (news.getContent() == null) return null;
 		
-		getSession().persist(news);
+		getSession().save(news);
 		
 		// Return news with changed id
-		return getByAuthorId(news.getAuthorId());
+		return news;
 	}
 
 	public @Override void update(News news) {
@@ -98,13 +100,33 @@ import com.clockwise.tworcy.model.account.AccountService;
 	}
 
 	public @Override News getSpecific(Integer newsId) {
-		if (newsId == null) return null;
-		return (News) getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldId, newsId)).uniqueResult();
+		if (newsId == null || newsId == 0) return null;
+		Criteria criteria = getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldId, newsId));
+		try {
+		Object obj = criteria.uniqueResult();
+		if(obj == null)
+			return null;
+		else
+			return (News) obj;
+		} catch(HibernateException e) {
+			logger.warn(e);
+			return null;
+		}
 	}
 	
 	public @Override News getByAuthorId(Integer authorId) {
-		if (authorId == null) return null;
-		return (News) getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldAuthorId, authorId)).uniqueResult();
+		if (authorId == null || authorId == 0) return null;
+		Criteria criteria = getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldAuthorId, authorId));
+		try {
+			Object obj = criteria.uniqueResult();
+			if(obj == null)
+				return null;
+			else
+				return (News) obj;
+			} catch(HibernateException e) {
+				logger.warn(e);
+				return null;
+			}
 		
 	}
 
@@ -128,7 +150,13 @@ import com.clockwise.tworcy.model.account.AccountService;
 			crit.add(Restrictions.eq(newsTableFieldAuthorId, accountId));
 			crit.addOrder(Order.desc(newsTableFieldDate));
 			crit.addOrder(Order.desc(newsTableFieldId));
-			return (List<News>) crit.list();
+			List<News> list = (List<News>) crit.list();
+			
+			if(logger.isTraceEnabled())
+				for(int i=0;i<list.size();i++)
+					logger.trace("News user["+i+"] = "+list.get(i).toString());
+			
+			return list;
 		} catch ( HibernateException e ) {
 			logger.error(e.getMessage());
 			return null;
@@ -155,9 +183,11 @@ import com.clockwise.tworcy.model.account.AccountService;
 			crit.addOrder(Order.desc(newsTableFieldDate));
 			crit.addOrder(Order.desc(newsTableFieldId));
 			List<News> list = (List<News>) crit.list();
-			for(int i=0;i<list.size();i++) {
-				logger.debug("News recent["+i+"] = "+list.get(i).toString());
-			}
+			
+			if(logger.isTraceEnabled())
+				for(int i=0;i<list.size();i++)
+					logger.trace("News recent["+i+"] = "+list.get(i).toString());
+			
 			return list;
 		} catch ( HibernateException e ) {
 			logger.error(e.getMessage());
@@ -170,7 +200,8 @@ import com.clockwise.tworcy.model.account.AccountService;
 		
 		// Begin transaction between tables
 		Transaction transaction = getSession().getTransaction();
-		transaction.begin();
+		if(!transaction.isActive())
+			transaction.begin();
 		try {
 			// Catch recent news
 			news = (News) getSession().createCriteria(News.class).add(Restrictions.eq(newsTableFieldId, news.getNewsId())).uniqueResult();

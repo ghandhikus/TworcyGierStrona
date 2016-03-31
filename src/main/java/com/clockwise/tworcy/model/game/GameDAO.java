@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-@Repository interface GameRepository {
+@Repository interface GameDAO {
 	public Game insert(Game game);
 	public Game update(Game game);
 	public void delete(Game game);

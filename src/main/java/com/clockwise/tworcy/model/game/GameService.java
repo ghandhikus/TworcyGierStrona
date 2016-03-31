@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.clockwise.tworcy.exception.ParameterTooLongException;
 import com.clockwise.tworcy.model.account.Account;
 import com.clockwise.tworcy.model.game.Game;
-import com.clockwise.tworcy.model.game.GameRepositoryHibernate;
+import com.clockwise.tworcy.model.game.GameDAOHibernate;
 
 public @Service interface GameService {
 	/**
@@ -43,7 +43,7 @@ public @Service interface GameService {
 
 	/**
 	 * Catches the count of records from database. It is fast if cached version of repository will be used.
-	 * @see GameRepositoryHibernate
+	 * @see GameDAOHibernate
 	 */
 	public Integer getGameCount();
 	

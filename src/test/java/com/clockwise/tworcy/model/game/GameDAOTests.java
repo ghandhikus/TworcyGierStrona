@@ -4,41 +4,67 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.transaction.Transactional;
 
-import org.junit.After;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 
+import com.clockwise.tworcy.model.account.Access;
+import com.clockwise.tworcy.model.account.Account;
+import com.clockwise.tworcy.model.account.AccountInject;
 import com.clockwise.tworcy.model.account.AccountService;
-import com.clockwise.tworcy.model.game.Game;
-import com.clockwise.tworcy.model.game.GameRepository;
+import com.clockwise.tworcy.model.account.DummyAccountInjector;
 /**
- * Tests {@link GameRepository}
+ * Tests {@link GameDAO}
  * @author Daniel
  */
 @WebAppConfiguration // MVC
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/spring-dispatcher-servlet.xml"})
-public class GameRepositoryTests {
+@Transactional
+public class GameDAOTests implements AccountInject {
 
 	// Services
 	@Autowired AccountService accounts;
 
 	// Database to test
-	@Autowired GameRepository db;
+	@Autowired GameDAO db;
 	
-	// Cleanup
-	List<Game> toDelete = new ArrayList<>();
-	Integer cleanupTestID = null;
+	Account admin;
+	
+	/////////////////////////////////////////////////////////////////////
+	// Account injection
+	@Autowired DummyAccountInjector injector;
+
+	/** Checks if account has permissions */
+	private void checkPermissions() {
+		Assert.assertTrue("Specified admin account for tests is a normal user!"+admin.toString(), admin.getAccess() >= Access.MODERATOR.getAccess());
+	}
+	
+	public @Before @Test void testAccountInjector(){
+		injector.inject(this);
+		checkPermissions();
+	}
+	
+	@Override
+	public Access[] needs() {
+		return new Access[] { Access.HEADADMIN };
+	}
+	
+	@Override
+	public void inject(Account[] account) {
+		this.admin = account[0];
+	}
+	/////////////////////////////////////////////////////////////////////
+
 
 	/** Creates Game object and adds it to cleanup deletion in case of test fails. */
 	Game createGameObject() { 
@@ -46,41 +72,16 @@ public class GameRepositoryTests {
 		game.setAuthorId(accounts.get("Ghandhikus").getId());
 		game.setTitle("NewsServiceTests");
 		game.setDescription("Some random content");
-		toDelete.add(game);
+		game.setDateAdded(DateTime.now());
 		return game;
-	}
-	
-	/** Prepares the class for testing */
-	public @Before @Test void init() {
-		assertNotNull(db);
-
-		// Create news by him
-		Game game = db.insert(createGameObject());
-		assertNotNull("Init test for GameRepository returned null after insert statement.", game);
-		
-		cleanupTestID = game.getGameId();
-	}
-	
-	/** Removes entries created by this test. Can fail if {@link GameRepository#delete} is badly written and does not remove the entries from the database. */
-	public @After @Test void dispose() {
-		// Iterate through objects to delete from db
-		for(Game game : toDelete)
-			try {
-				db.delete(game);
-			} catch(Exception e) {
-				
-			}
-		
-		// Test if test can dispose it's added data when some of them fail to do so
-		Game game = db.getSpecific(cleanupTestID);
-		Assert.assertNull("Cleanup was not succesful.", game);
 	}
 
 	/**
 	 * Checks if repository can handle common database operations
 	 * <a href="https://www.google.com/search?q=CRUD">(CRUD)</a>
 	 */
-	public @Transactional @Test void insertUpdateSelectDelete() {
+	@Rollback(true)
+	public @Test void insertUpdateSelectDelete() {
 		/** Create */
 		
 		// Allocating object
@@ -89,6 +90,9 @@ public class GameRepositoryTests {
 		// Inserting
 		game = db.insert(game);
 		assertNotNull("Cannot insert game to database. Returned null.", game);
+		
+		// Checking if game id has been updated
+		assertTrue("Game id has not been updated after the insertion.", game.getGameId()!=0);
 		
 		/** Read */
 		// Reading from db
@@ -105,7 +109,7 @@ public class GameRepositoryTests {
 		
 		/** Delete */
 		// Catch database ID and delete the game
-		Integer deleteID = game.getGameId();
+		int deleteID = game.getGameId();
 		db.delete(game);
 		
 		// Check if purposely deleted object still exist

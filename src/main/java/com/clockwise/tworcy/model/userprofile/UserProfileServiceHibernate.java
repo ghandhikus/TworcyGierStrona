@@ -60,7 +60,7 @@ public @Service class UserProfileServiceHibernate implements UserProfileService 
 	public @Override @Transactional UserProfile getUserProfileByAccount(
 			Account account) {
 		if(account == null) return null;
-		if(account.getId() == null) return null;
+		if(account.getId() == 0) return null;
 		return db.getUserProfileByAccountId(account.getId());
 	}
 

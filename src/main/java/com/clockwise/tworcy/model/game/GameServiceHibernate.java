@@ -14,7 +14,7 @@ import com.clockwise.tworcy.util.Messages;
 
 public @Service("gameService") class GameServiceHibernate implements GameService {
 
-	private @Autowired GameRepository db;
+	private @Autowired GameDAO db;
 	private @Autowired AccountPermissions permissions;
 
 	private void prepareForAdding(Game game, Account account) {

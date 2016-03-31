@@ -1,28 +1,28 @@
 package com.clockwise.tworcy.model.news;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.security.AccessControlException;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clockwise.tworcy.model.account.Access;
 import com.clockwise.tworcy.model.account.Account;
+import com.clockwise.tworcy.model.account.AccountInject;
 import com.clockwise.tworcy.model.account.AccountService;
-import com.clockwise.tworcy.model.news.News;
-import com.clockwise.tworcy.model.news.NewsDAO;
-import com.clockwise.tworcy.model.news.NewsService;
+import com.clockwise.tworcy.model.account.DummyAccountInjector;
 
 /**
  * Tests {@link NewsService}
@@ -31,22 +31,45 @@ import com.clockwise.tworcy.model.news.NewsService;
 @WebAppConfiguration // MVC
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/spring-dispatcher-servlet.xml"})
-public class NewsServiceTests {
+@Transactional(propagation=Propagation.REQUIRED)
+public class NewsServiceTests implements AccountInject {
 	// Services
 	@Autowired NewsService newsService;
 	@Autowired AccountService accounts;
 	
 	// Database for making sure that data will be deleted
 	@Autowired NewsDAO db;
+
+
+	/** Checks if account has permissions */
+	private void checkPermissions() {
+		Assert.assertTrue("Specified normal account for tests is not a normal user! "+account.toString(), account.getAccess() == Access.NORMAL.getAccess());
+		Assert.assertTrue("Specified admin account for tests is a normal user!"+admin.toString(), admin.getAccess() >= Access.MODERATOR.getAccess());
+	}
+	/////////////////////////////////////////////////////////////////////
+	// Account injection
+	@Autowired DummyAccountInjector injector;
+	Account account, admin;
 	
-	// Cleanup
-	List<News> toDelete = new ArrayList<>();
-	Integer cleanupTestID = null;
-	
-	// Accounts for testing
-	Account admin, account;
+	public @Before @Test void testAccountInjector(){
+		injector.inject(this);
+		checkPermissions();
+	}
+
+	@Override
+	public Access[] needs() {
+		return new Access[] { Access.NORMAL, Access.HEADADMIN };
+	}
+
+	@Override
+	public void inject(Account[] account) {
+		this.account = account[0];
+		this.admin = account[1];
+	}
+	/////////////////////////////////////////////////////////////////////
 	
 	/** Prepares this class for tests */
+	@Rollback(true)
 	public @Before @Test void init()
 	{
 		// TODO: create accounts just for testing.
@@ -59,29 +82,13 @@ public class NewsServiceTests {
 		News news = new News();
 		news.setTitle("NewsServiceTests");
 		news.setContent("Some random content");
-		toDelete.add(news);
 		news = newsService.addNews(news, admin);
 		Assert.assertNotNull("Test was not created for cleanup test.", news);
-		
-		cleanupTestID = news.getNewsID();
 	}
-	
-	/** Cleans up after this class tests. Removes data from database. */
-	public @After @Test void dispose()
-	{
-		for(News news : toDelete)
-			try {
-				db.delete(news);
-			} catch(NullPointerException e) {
-				// Catch common for remove exceptions
-			}
-		
-		News news = newsService.getSpecificByID(cleanupTestID);
-		Assert.assertNull("Cleanup was not succesful.", news);
-	}
-	
+
 	/** Tests all admin specific behavior. */
-	public @Transactional @Test void adminTests()
+	@Rollback(true)
+	public @Test void adminTests()
 	{
 		String err = " is badly implemented for "+newsService.getClass();
 		
@@ -92,28 +99,28 @@ public class NewsServiceTests {
 		News news = new News();
 		news.setTitle("NewsServiceTests");
 		news.setContent("Some random content");
-		toDelete.add(news);
-		toDelete.add(news = newsService.addNews(news, admin));
+		news = newsService.addNews(news, admin);
 		Assert.assertNotNull("addNews returned null, addNews"+err, news);
 		
 		// Update
 		news.setContent("NewContent!");
-		toDelete.add(news = newsService.updateNews(news, admin));
+		news = newsService.updateNews(news, admin);
 		Assert.assertNotNull("updateNews returned null, updateNews"+err, news);
 		
 		// Load the news
-		toDelete.add(news = newsService.getSpecificByID(news.getNewsID()));
+		news = newsService.getSpecificByID(news.getNewsId());
 		Assert.assertNotNull("Can't load the news previously updated, getSpecificByID"+err, news);
 		Assert.assertTrue("content does not equal the changes of the previous update, getSpecificByID"+err, news.getContent().equals("NewContent!"));
 		
 		// Delete the news
 		newsService.removeBy(news, admin);
-		toDelete.add(news = newsService.getSpecificByID(news.getNewsID()));
+		news = newsService.getSpecificByID(news.getNewsId());
 		Assert.assertNull("Can't remove the news by admin, removeBy"+err, news);
 	}
 	
 	/** Tests if normal user can hack the news service. */
-	public @Transactional @Test void normalHackTests()
+	@Rollback(true)
+	public @Test void normalHackTests()
 	{
 		String err = " is badly implemented for "+newsService.getClass();
 		
@@ -127,7 +134,6 @@ public class NewsServiceTests {
 		try {
 			news = newsService.addNews(news, account);
 			// this shouldnt fire
-			toDelete.add(news);
 		} catch (AccessControlException e) {
 			news = null;
 		}
@@ -135,7 +141,6 @@ public class NewsServiceTests {
 		
 		// Admin news
 		News adminNews = newsService.createNews("test", "test", admin);
-		toDelete.add(adminNews);
 
 		// Tries to update with account that has no access to update.
 		// In real world nothing should have access to setting these variables.
@@ -146,7 +151,6 @@ public class NewsServiceTests {
 		try {
 			news = newsService.updateNews(adminNews, account);
 			// this should'nt fire
-			toDelete.add(news);
 		} catch (AccessControlException e) {
 			news = null;
 		}
@@ -154,7 +158,8 @@ public class NewsServiceTests {
 	}
 	
 	/** Tests specific to normal user behavior. */
-	public @Transactional @Test void normalTests()
+	@Rollback(true)
+	public @Test void normalTests()
 	{
 		String err = " is badly implemented for "+newsService.getClass();
 		
@@ -164,43 +169,42 @@ public class NewsServiceTests {
 		
 		// Create any news to see
 		News adminNews = newsService.createNews("test", "test", admin);
-		toDelete.add(adminNews);
-		Integer id = adminNews.getNewsID();
+		Integer id = adminNews.getNewsId();
 		
 		// Load recent news
 		List<News> recentNews = newsService.getRecentNews(10, 0);
 		boolean contains = false;
 		
 		for(News news : recentNews)
-			if(news.getNewsID() == id)
+			if(news.getNewsId() == id)
 				contains = true;
 		
 		assertTrue("Users can't load recent news.", contains);
 		
 		// Checking news parameters for recent news
 		for(News news : recentNews)
-			if(news.getNewsID() == id)
+			if(news.getNewsId() == id)
 			{
 				String title = news.getTitle();
 				String content = news.getContent();
 				String creatorName = newsService.getAuthorName(news);
 	
-				assertTrue("News parameter is not as it should be. Parameter : authorID is("+news.getAuthorID()+") shouldBe("+admin.getId()+")", news.getAuthorID().equals(admin.getId()));
+				assertTrue("News parameter is not as it should be. Parameter : authorID is("+news.getAuthorId()+") shouldBe("+admin.getId()+")", news.getAuthorId() == admin.getId());
 				assertTrue("News parameter is not as it should be. Parameter : title is("+title+") shouldBe(test)", title.equals("test"));
 				assertTrue("News parameter is not as it should be. Parameter : content is("+content+") shouldBe(test)", content.equals("test"));
 				assertTrue("NewsService can't catch the correct name. is("+creatorName+") shouldBe("+admin.getName()+")", creatorName.equals(admin.getName()));
 			}
 	}
 	
-	public @Transactional @Test void checks_If_News_Can_Break_When_There_Is_No_ID_in_DB()
+	@Rollback(true)
+	public @Test void checks_If_News_Can_Break_When_There_Is_No_ID_in_DB()
 	{
 		// Create news by admin
 		News n = newsService.createNews("test", "test", admin);
-		toDelete.add(n);
 		// Get id
-		int id = n.getNewsID();
+		int id = n.getNewsId();
 		// Remove news
-		newsService.removeBy(id, admin);
+		newsService.removeBy(n, admin);
 		
 		News test = newsService.getSpecificByID(id);
 		

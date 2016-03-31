@@ -13,6 +13,7 @@ import com.clockwise.tworcy.model.news.News;
 public @Component class AccountPermissions {
 
 	private void n(String msg) { throw new NullPointerException(Messages.getString(msg)); }
+	private void i(String msg) { throw new IllegalArgumentException(Messages.getString(msg)); }
 	private void a(String msg) { throw new AccessControlException(Messages.getString(msg)); }
 	private void p(String msg) throws ParameterTooLongException { throw new ParameterTooLongException(Messages.getString(msg)); }
 	
@@ -20,8 +21,7 @@ public @Component class AccountPermissions {
 	public void checkParameter(Account account) throws NullPointerException
 	{
 		if(account == null) n("Account.notSet");
-		if(account.getId() == null) n("Account.notSetID");
-		if(account.getId() == 0) n("Account.badID");
+		if(account.getId() == 0) i("Account.badID");
 	}
 	public void checkParameter(News news) throws NullPointerException, ParameterTooLongException
 	{
@@ -55,7 +55,7 @@ public @Component class AccountPermissions {
 	// News checks
 	public boolean isAuthor(News news, Account account)
 	{
-		return (account.getId().equals(news.getAuthorId()));
+		return (account.getId() == news.getAuthorId());
 	}
 	public boolean canAddNews(Account account)
 	{
@@ -72,7 +72,7 @@ public @Component class AccountPermissions {
 	// Game checks
 	public boolean isAuthor(Game game, Account account)
 	{
-		return (account.getId().equals(game.getAuthorId()));
+		return (account.getId() == game.getAuthorId());
 	}
 	public boolean canAddGames(Account account)
 	{

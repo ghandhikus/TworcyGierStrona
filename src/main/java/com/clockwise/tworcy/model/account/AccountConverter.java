@@ -1,7 +1,5 @@
 package com.clockwise.tworcy.model.account;
 
-import static org.springframework.util.Assert.notNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +36,7 @@ import com.clockwise.tworcy.model.account.authorizations.NormalRole;
 	 */
 	Account convert(AccountData data) {
 		// Param checks
-		notNull(data);
+		if (data == null) return null;
 		
 		// Converting Access to Spring.Security RememberMe format
 		Collection<GrantedAuthority> auth = new ArrayList<GrantedAuthority>();
@@ -49,7 +47,7 @@ import com.clockwise.tworcy.model.account.authorizations.NormalRole;
 		if(access >= Access.HEADADMIN.getAccess()) auth.add(new HeadAdminRole());
 		
 		// Return of created account object
-		return new Account(data.getId(), data.getUsername(), data.getPassword(), data.getLastLogin(), data.getLastPasswordChange(), data.getExpireOn(), data.getPasswordExpireOn(), data.isEnabled(), data.isLocked(), auth);
+		return new Account(data.getId(), data.getUsername(), data.getPassword(), data.getLastLogin(), data.getLastPasswordChange(), data.getExpireOn(), data.getPasswordExpireOn(), data.isEnabled(), data.isLocked(), auth, Access.byValue(access));
 	}
 	
 	/**
@@ -58,9 +56,10 @@ import com.clockwise.tworcy.model.account.authorizations.NormalRole;
 	 * @return converted {@link AccountData}
 	 */
 	AccountData convertBack(Account acc) {
-		// Raw data object
-		AccountData data = new AccountData();
-		
+		return convertBack(acc, new AccountData());
+	}
+
+	AccountData convertBack(Account acc, AccountData data) {
 		// Populating data
 		data.setId(acc.getId());
 		data.setUsername(acc.getName());

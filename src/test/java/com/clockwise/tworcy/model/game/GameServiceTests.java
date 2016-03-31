@@ -3,26 +3,25 @@ package com.clockwise.tworcy.model.game;
 import static org.junit.Assert.*;
 
 import java.security.AccessControlException;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.clockwise.tworcy.exception.ParameterTooLongException;
 import com.clockwise.tworcy.model.account.Access;
 import com.clockwise.tworcy.model.account.Account;
+import com.clockwise.tworcy.model.account.AccountInject;
 import com.clockwise.tworcy.model.account.AccountService;
-import com.clockwise.tworcy.model.game.Game;
-import com.clockwise.tworcy.model.game.GameRepository;
-import com.clockwise.tworcy.model.game.GameService;
+import com.clockwise.tworcy.model.account.DummyAccountInjector;
 
 /**
  * Tests {@link GameService}
@@ -31,20 +30,43 @@ import com.clockwise.tworcy.model.game.GameService;
 @WebAppConfiguration // MVC
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/spring-dispatcher-servlet.xml"})
-public class GameServiceTests {
+@Transactional(propagation=Propagation.REQUIRED)
+public class GameServiceTests implements AccountInject {
 	// Services
 	@Autowired GameService gameService;
 	@Autowired AccountService accounts;
 	
 	// Database to make sure that data will be deleted
-	@Autowired GameRepository db;
+	@Autowired GameDAO db;
+
+	/** Checks if account has permissions */
+	private void checkPermissions() {
+		Assert.assertTrue("Specified normal account for tests is not a normal user! "+account.toString(), account.getAccess() == Access.NORMAL.getAccess());
+		Assert.assertTrue("Specified admin account for tests is a normal user!"+admin.toString(), admin.getAccess() >= Access.MODERATOR.getAccess());
+	}
+	/////////////////////////////////////////////////////////////////////
+	// Account injection
 	
-	// Cleanup
-	List<Game> toDelete = new ArrayList<>();
-	Integer cleanupTestID = null;
+	@Autowired DummyAccountInjector injector;
+	Account account, admin;
 	
-	// Accounts for this test
-	Account admin, account;
+	public @Before @Test void testAccountInjector(){
+		injector.inject(this);
+		
+		checkPermissions();
+	}
+
+	@Override
+	public Access[] needs() {
+		return new Access[]{Access.NORMAL, Access.HEADADMIN};
+	}
+
+	@Override
+	public void inject(Account[] account) {
+		this.account = account[0];
+		this.admin = account[1];
+	}
+	/////////////////////////////////////////////////////////////////////
 	
 	/** Creates Game object and adds it to cleanup deletion in case test fails. */
 	Game createGameObject()
@@ -52,48 +74,12 @@ public class GameServiceTests {
 		Game game = new Game();
 		game.setTitle("GameServiceTests");
 		game.setDescription("Some random content");
-		toDelete.add(game);
 		return game;
 	}
 
-	/** Checks if account has permissions */
-	private void checkPermissions() {
-		Assert.assertTrue("Specified normal account for tests is not a normal user!", account.getAccess() == Access.NORMAL.getAccess());
-		Assert.assertTrue("Specified admin account for tests is a normal user!", admin.getAccess() >= Access.MODERATOR.getAccess());
-	}
-	
-	/** Prepares this class for tests */
-	public @Before @Test void init()
-	{
-		// Catch admin account
-		admin = accounts.get("Ghandhikus");
-		// Catch normal account
-		account = accounts.get("Dummy");
-
-		try {
-			// Create game by him
-			Game game = gameService.addGame(createGameObject(), admin);
-			Assert.assertNotNull("Test was not created for cleanup test.", game);
-			cleanupTestID = game.getGameId();
-		} catch (AccessControlException | ParameterTooLongException e) {
-			throw new AssertionError(e.getMessage());
-		}
-	}
-	
-	/** Cleans up aftetr the tests */
-	public @After @Test void dispose() {
-		for(Game game : toDelete)
-			try {
-				db.delete(game);
-			} catch(Exception e) {
-			
-			}
-		
-		Game game = gameService.getSpecificByID(cleanupTestID);
-		Assert.assertNull("Cleanup was not succesful.", game);
-	}
 
 	/** Checks behavior for admin accounts. Creates a game, updates it, loads it and removes. */
+	@Rollback(true)
 	public @Test void adminTests() {
 		String err = " is badly implemented for "+gameService.getClass();
 
@@ -103,19 +89,16 @@ public class GameServiceTests {
 		Game game = createGameObject();
 		game = gameService.addGame(game, admin);
 		Assert.assertNotNull("addGame returned null, in addGame"+err, game);
-		toDelete.add(game);
 		// Update
 		game.setDescription("NewContent!");
 		game = gameService.updateGame(game, admin);
 		Assert.assertNotNull("updateGame returned null, in updateGame"+err, game);
-		toDelete.add(game);
 		
 		// Load the game
 		game = gameService.getSpecificByID(game.getGameId());
 		Assert.assertNotNull("getSpecificByID returned null, in getSpecificByID"+err, game);
 		Assert.assertTrue("content does not equal the changes of the previous update, in getSpecificByID"+err, game.getDescription().equals("NewContent!"));
-		toDelete.add(game);
-		
+
 		// Delete the game
 		gameService.removeBy(game, admin);
 		game = gameService.getSpecificByID(game.getGameId());
@@ -123,6 +106,7 @@ public class GameServiceTests {
 	}
 	
 	/** Attempts to hack a game created by different user with normal account. */
+	@Rollback(true)
 	public @Test void normalHackTests()
 	{
 		String err = " is badly implemented for "+gameService.getClass();
@@ -133,8 +117,6 @@ public class GameServiceTests {
 		Game game = createGameObject();
 		try {
 			game = gameService.addGame(game, admin);
-			// this shouldnt fire
-			toDelete.add(game);
 		} catch (AccessControlException e) {
 			game = null;
 		}
@@ -144,7 +126,7 @@ public class GameServiceTests {
 		try {
 			game = gameService.updateGame(game, account);
 			// this shouldnt fire
-			toDelete.add(game);
+			Assert.assertTrue("This shouldn't fire due to exception thrown above", false);
 		} catch (AccessControlException e) {
 			game = null;
 		}
@@ -152,6 +134,7 @@ public class GameServiceTests {
 	}
 	
 	/** Tests the case for ordinary user that will just browse the website without doing anything. */
+	@Rollback(true)
 	public @Test void lurkerCase()
 	{
 		String err = " is badly implemented for "+gameService.getClass();
@@ -202,6 +185,7 @@ public class GameServiceTests {
 	}
 	
 	/** Test the case of creator. Adds, updates and removes the game by normal account. */
+	@Rollback(true)
 	public @Test void creatorCase()
 	{
 		String err = " is badly implemented for "+gameService.getClass();
@@ -227,6 +211,7 @@ public class GameServiceTests {
 	}
 	
 	/** Attempts to moderate the game with moderator account. Corrects the game of different normal user and removes it.*/
+	@Rollback(true)
 	public @Test void moderatorCase()
 	{
 		String err = " is badly implemented for "+gameService.getClass();
@@ -249,7 +234,7 @@ public class GameServiceTests {
 		// TODO: add this when archive will be supported better
 
 		// Removing
-		gameService.removeBy(id, admin);
+		gameService.removeBy(createdGame, admin);
 		Game removed = gameService.getSpecificByID(id);
 		assertNull("Moderator can't delete someone's game, in removeBy"+err, removed);
 	}

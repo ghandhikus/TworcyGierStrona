@@ -18,10 +18,6 @@ public @Service interface AccountService extends UserDetailsService {
 	Account getLogged();
 	boolean isLogged();
 	
-	/*boolean isLogged(HttpSession session);
-	Account getLogged(HttpSession session);
-	Account login(String name, String password, HttpSession session) throws Exception;
-	void logout(HttpSession session);*/
 	Account login(String name, String password, HttpServletRequest request) throws Exception;
 	Account register(String name, String password) throws Exception;
 	void logout();
