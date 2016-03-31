@@ -4,18 +4,18 @@
 * [Source](src) - All project files, excluding maven and git configuration.
  * [Tests](src/test) - Test module, which contains all test-only files.
  * [Main](src/main) - Contains project files.
-   * ![Gear img](https://pubs.vmware.com/vrealizeoperationsmanager-6/topic/com.vmware.vcom.core.doc/GUID-67A2F2E1-67AA-447F-B01B-71CAC8C4DE4D-low.png)
-     [Resources](src/main/resources) - Stores property files, language files, and minor settings.
-   * ![Front-End img](http://www.cakescookiesandcraftsshop.co.uk/skin/frontend/base/default/images/rewards/add_points.png)
-     [Web Application](src/main/webapp) - Holds all frontend files.
-     * [META-INF](src/main/webapp/META-INF) - Contains MANIFEST.MF. Required by Maven.
-     * [Resources](src/main/webapp/resources) - Holds all resources for frontend, js, images, css, fonts.
-     * [WEB-INF](src/main/webapp/WEB-INF) - All server-side front-end files.
-       * [JSP](src/main/webapp/WEB-INF/jsp) - All JSP files. JSPs are mainly used for generating the html files in this project.
-       * [Libraries](src/main/webapp/WEB-INF/lib) - Maven cache folder, for libraries. Excluded in .gitignore
-   * ![Back-End img](http://icons.iconarchive.com/icons/led24.de/led/16/page-code-icon.png)
-     [Java](src/main/java) - Holds all backend code.
-     * [Tworcy](src/main/java/com/clockwise/tworcy) - MVC module for backend.
+    * ![Gear img](https://pubs.vmware.com/vrealizeoperationsmanager-6/topic/com.vmware.vcom.core.doc/GUID-67A2F2E1-67AA-447F-B01B-71CAC8C4DE4D-low.png)
+      [Resources](src/main/resources) - Stores property files, language files, and minor settings.
+    * ![Front-End img](http://www.cakescookiesandcraftsshop.co.uk/skin/frontend/base/default/images/rewards/add_points.png)
+      [Web Application](src/main/webapp) - Holds all frontend files.
+      * [META-INF](src/main/webapp/META-INF) - Contains MANIFEST.MF. Required by Maven.
+      * [Resources](src/main/webapp/resources) - Holds all resources for frontend, js, images, css, fonts.
+      * [WEB-INF](src/main/webapp/WEB-INF) - All server-side front-end files.
+        * [JSP](src/main/webapp/WEB-INF/jsp) - All JSP files. JSPs are mainly used for generating the html files in this project.
+        * [Libraries](src/main/webapp/WEB-INF/lib) - Maven cache folder, for libraries. Excluded in .gitignore
+    * ![Back-End img](http://icons.iconarchive.com/icons/led24.de/led/16/page-code-icon.png)
+      [Java](src/main/java) - Holds all backend code.
+      * [Tworcy](src/main/java/com/clockwise/tworcy) - MVC module for backend.
 
 ## Fronend Libraries used
 Please browse [Frontend Resources](src/main/webapp/resources) for more
