@@ -15,7 +15,8 @@
       * [Tworcy](src/main/java/com/clockwise/tworcy) - MVC module for backend.
 
 ## Fronend Libraries used
-_please browse [Frontend Resources](src/main/webapp/resources) for more_
+Please browse [Frontend Resources](src/main/webapp/resources) for more
+
 * [jQuery](https://jquery.com/)
 * [jQuery colors](https://github.com/jquery/jquery-color)
 * [jQuery UI](https://jqueryui.com/)
@@ -26,7 +27,8 @@ _please browse [Frontend Resources](src/main/webapp/resources) for more_
 * [Masonry](http://masonry.desandro.com)
 
 ## Backend Libraries used
-_for full list see [pom.xml](https://github.com/ghandhikus/TworcyGierStrona/blob/master/pom.xml)_
+For full list see [pom.xml](https://github.com/ghandhikus/TworcyGierStrona/blob/master/pom.xml)
+
 * [Log4j](http://logging.apache.org/log4j)
 * [Apache Commons](https://commons.apache.org/)
 * [JNA 4](https://github.com/java-native-access/jna)
