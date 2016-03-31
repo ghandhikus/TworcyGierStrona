@@ -1,9 +1,9 @@
 # Website Twórcy Gier
 
 ## Project structure
-*_[Source](src) - All project files, excluding maven and git configuration.
- *|[Tests](src/test) - Test module, which contains all test-only files.
- *|[Main](src/main) - Contains project files.
+* [Source](src) - All project files, excluding maven and git configuration.
+ * [Tests](src/test) - Test module, which contains all test-only files.
+ * [Main](src/main) - Contains project files.
    * [Resources](src/main/resources) - Stores property files, language files, and minor settings.
    * [Web Application](src/main/webapp) - Holds all frontend files.
      * [META-INF](src/main/webapp/META-INF) - Contains MANIFEST.MF. Required by Maven.
