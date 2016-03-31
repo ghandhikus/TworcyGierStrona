@@ -4,7 +4,8 @@
 * [Source](src) - All project files, excluding maven and git configuration.
  * [Tests](src/test) - Test module, which contains all test-only files.
  * [Main](src/main) - Contains project files.
-   * [Resources](src/main/resources) - Stores property files, language files, and minor settings.
+   * ![Gear img](https://pubs.vmware.com/vrealizeoperationsmanager-6/topic/com.vmware.vcom.core.doc/GUID-67A2F2E1-67AA-447F-B01B-71CAC8C4DE4D-low.png)
+     [Resources](src/main/resources) - Stores property files, language files, and minor settings.
    * ![Front-End img](http://www.cakescookiesandcraftsshop.co.uk/skin/frontend/base/default/images/rewards/add_points.png)
      [Web Application](src/main/webapp) - Holds all frontend files.
      * [META-INF](src/main/webapp/META-INF) - Contains MANIFEST.MF. Required by Maven.
