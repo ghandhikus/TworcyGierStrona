@@ -26,6 +26,7 @@ Please browse [Frontend Resources](src/main/webapp/resources) for more
 * [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
 * [Bootstrap](http://getbootstrap.com/)
 * ~~[angular.js](https://angularjs.org/)~~ not yet, but it is a next thing in TODO
+* ~~[angular-ui bootstrap](https://github.com/angular-ui/bootstrap)~~
 * [SCEditor](http://www.sceditor.com/)
 * [Masonry](http://masonry.desandro.com)
 
